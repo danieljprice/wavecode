@@ -1,3 +1,4 @@
+      program wave
       implicit real*8(a-h,o-z)
       complex*16 za1,za2,zd1,zd2 ,zi
 c
@@ -57,7 +58,7 @@ c
 c
 c  set up grid, extending from r1 to r2 using n gridpoints
 c
-      n=2000
+      n=200
       r1=1.
       r2=90.
 c
@@ -104,7 +105,7 @@ c
 c
       tmongo=tstop/10.
       tchmon=0.
-      mline=1
+      mline=0
 c
 c
       write(6,201) tstop,tmongo,ctime
@@ -114,7 +115,7 @@ c   initial printout
 c
       call prdisc
       call print
-      call pmongo
+      call write_output_file
 c
 c   start the main evolution loop
 c
@@ -122,12 +123,9 @@ c   calculate timestep - linear problem so do only once
 c
       call tstep
 c
-      write(6,110) dt
- 110  format(1x,'timestep dt = ', 1pd12.4)
+      write(6,"(1x,'timestep dt = ', es12.4)") dt
 c
-c
-c
- 10   continue
+      do while (time < tstop)
 c
       nstep=nstep+1
       jcount=jcount+1
@@ -153,20 +151,17 @@ c  output to mongo if necessary
 c
       if(tchmon.ge.tmongo) then
          tchmon=0.
-         call pmongo
+         call write_output_file
       endif
 c
-      if(time.lt.tstop) then
-         go to 10
-      end if
+      enddo
 c
 c
       call print
-      call pmongo
+      call write_output_file
 c
 c
-      stop
-      end
+      end program wave
 c   
       subroutine makegrid
       implicit real*8(a-h,o-z)
@@ -184,25 +179,25 @@ c
 c
       factor=(r2/r1)**(1./float(2*n))
 c
-      do 17 i=3,2*n+1
+      do i=3,2*n+1
          r(i)=r1*factor**(i-2)
- 17   continue
+      enddo
 c
-      do 18 i=3,2*n+1
+      do i=3,2*n+1
          dr(i)=r(i+1)-r(i-1)
- 18   continue
+      enddo
 c
       dr(2)=dr(3)
       dr(2*n+2)=dr(2*n+1)
 c
-      do 19 i=2,2*n+2
+      do i=2,2*n+2
          rsq(i)=r(i)*r(i)
          r12(i)=sqrt(r(i))
          r32(i)=r(i)*r12(i)
- 19   continue
+      enddo
 c
       return
-      end
+      end subroutine makegrid
 c
 c
 c
@@ -219,7 +214,7 @@ c
 c
 c  
 c
-      do 21 i=2,2*n+2
+      do i=2,2*n+2
          rho(i)=r(i)
 c
 c  note that rho = Sigma H^2
@@ -232,11 +227,10 @@ c
          eta(i)=etazero/r(i)
          zeta(i)=zetazero/r32(i)
 c
- 21   continue
-c
-c
+      enddo
+
       return
-      end
+      end subroutine makedisc
 c
       subroutine setup
       implicit real*8(a-h,o-z)
@@ -259,14 +253,14 @@ c
 c   za1 and za2 correspond to A; zd1 and zd2 correspond to D
 c   1 and 2 correspond to different levels of the Leapfrog.
 c
-      do 27 i=1,n+1
+      do i=1,n+1
          za1(i)=(0.,0.)
          za2(i)=(0.,0.)
          zd1(i)=(0.,0.)
          zd2(i)=(0.,0.)
- 27   continue
+      enddo
 c
-      do 28 i=1,n
+      do i=1,n
          radius=r(2*i+1)
          if(radius.lt.rstep-wstep) then
             tilt=0.
@@ -276,12 +270,12 @@ c
             tilt=0.5*(1.+sin(pi*(radius-rstep)/2./wstep))
          endif
 c
-         zd1(i)=tilt/rsq(2*i+1)
-         zd2(i)=tilt/rsq(2*i+1)
- 28   continue
+         zd1(i)=cmplx(tilt/rsq(2*i+1),0.)
+         zd2(i)=cmplx(tilt/rsq(2*i+1),0.)
+      enddo
 c
       return
-      end
+      end subroutine setup
 c
 c
       subroutine tstep
@@ -306,7 +300,7 @@ c
 c
       dt=1.d20
 c
-      do 31 i=2,n
+      do i=2,n
 c
          dtry1=dr(2*i)/sqrt(csq(2*i))
 c
@@ -335,7 +329,7 @@ c
             itype=3
          endif
 c
- 31   continue
+      enddo
 c
       dt=ctime*dt
 c
@@ -388,23 +382,23 @@ c
 c
 c   then update the bulk of the grid
 c
-      do 2 i=2,n
+      do i=2,n
          za1(i)=za1(i)
      +     -dt*.5/rsq(2*i)*(rsq(2*i+1)*zd2(i)-rsq(2*i-1)*zd2(i-1))
      +               /dr(2*i)
      +           +dt*zi*eta(2*i)*omega(2*i)*za2(i)
      +           -alpha*omega(2*i)*dt*za1(i) 
-2     continue
+      enddo
 c
 c  then we update zd2, which is at the half-gridpoints
 c
 c
-      do 11 i=1,n
+      do i=1,n
          zd2(i)=zd2(i)-dt*csq(2*i+1)/2./r12(2*i+1)/rho(2*i+1)
      +     *(rho(2*i+2)*r12(2*i+2)*za1(i+1)-rho(2*i)*r12(2*i)*za1(i))
      +     /dr(2*i+1)
      +        +dt*zi*zeta(2*i+1)*omega(2*i+1)*zd1(i)
- 11   continue
+      enddo
 c
 c
 c   then update za2, which is at the full gridpoints,
@@ -416,17 +410,17 @@ c
 c
 c   then update the bulk of the grid
 c
-      do 21 i=2,n
+      do i=2,n
          za2(i)=za2(i)
      +     -dt*.5/rsq(2*i)*(rsq(2*i+1)*zd1(i)-rsq(2*i-1)*zd1(i-1))
      +               /dr(2*i)
      +           +dt*zi*eta(2*i)*omega(2*i)*za1(i)
      +           -alpha*omega(2*i)*dt*za2(i) 
- 21   continue
+      enddo
 c
 c
       return
-      end
+      end subroutine update
 c
 c
       subroutine print
@@ -439,19 +433,13 @@ c
       common/tempus/time,dt,ctime,nstep,mline
       common/precess/eta(4004),zeta(4004)
       common/consts/honr,etazero,zetazero
-c
-c
-      write(6,101) nstep, time
-c
-      do 50 i=1,n+1
-         write(6,102) r(2*i),zd1(i),za1(i)
- 50   continue
-c
-c
- 101  format(1x, 'nstep= ',i8,' time= ',1pd12.4)
- 102  format(1x, 'r,d,a  ', 5(1pd12.4))
-c
-c
+
+      write(6,"('nstep= ',i8,' time= ',1pd12.4)") nstep, time
+
+      do i=1,n+1
+         write(6,"(1x, 'r,d,a  ', 5(1pd12.4))") r(2*i),zd1(i),za1(i)
+      enddo
+
       return
       end
 c
@@ -491,7 +479,7 @@ c
       end
 c
 c
-      subroutine pmongo
+      subroutine write_output_file
       implicit real*8(a-h,o-z)
       complex*16 za1,za2,zd1,zd2 ,zi
       complex*16 ztilt
@@ -499,35 +487,35 @@ c
       common/grid/r(4004),dr(4004),rsq(4004),
      +   r12(4004),r32(4004),r1,r2,n
       common/disc/omega(4004),rho(4004),csq(4004)
-      common/tempus/time,dt,ctime,nstep,mline
+      common/tempus/time,dt,ctime,nstep,nfile
       common/precess/eta(4004),zeta(4004)
       common/consts/honr,etazero,zetazero
+      character(len=120) :: filename
 c
-c  prints where we are in format for mongo
+c  prints output file
 c
-      mline1=mline
-      mline2=mline1+n
-c
-      write(6,150) mline1,mline2,nstep,time
- 150  format(1x, 'lines', i6,' to',i6,' are nstep',i6,' time=', 1pd12.4)
-c
-      mline=mline2+1
-c
-      do 51 i=1,n+1
+      write(filename,"('wave_',i5.5)") nfile
+      open(unit=24,file=filename,status='replace',form='formatted')
+      write(6,"(a,i6,a,es12.4,a)") ' nstep ',nstep,' time = ',time,
+     &     ' writing '//trim(filename)
+
+      write(24,*) time,nsteps
+      do i=1,n+1
          ztilt=zd1(i)*rsq(2*i+1)
-c
+
          rtilt=ztilt
          xitilt=-zi*ztilt
          tilt=abs(ztilt)
          phase=atan2(xitilt,rtilt)
-c
-         write(24,151) r(2*i), ztilt, tilt, phase
- 51   continue
-c
- 151  format(1x, 5F12.4)
-c
+
+         write(24,"(1x,5F12.4)") r(2*i), ztilt, tilt, phase
+      enddo
+      close(unit=24)
+
+      nfile = nfile + 1
+
       return
-      end
+      end subroutine write_output_file
 
 
 
