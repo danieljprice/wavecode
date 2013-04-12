@@ -25,7 +25,7 @@ module waveutils
  real*8, dimension(2*maxgrid) :: r,dr,rsq,r12,r32 ! grid
  real*8, dimension(2*maxgrid) :: omega,rho,csq    ! disc
  real*8, dimension(2*maxgrid) :: eta, zeta        ! precess
- real*8  :: r1,r2           ! grid
+ real*8  :: rin,rout           ! grid
  real*8  :: alpha           ! diss
  real*8  :: rstep,wstep     ! ics
  real*8  :: time,dt,ctime   ! tempus
@@ -36,6 +36,9 @@ module waveutils
 
 end module waveutils
 
+!
+!--routines to return eta/zeta for a binary potential
+!
 module binary
  implicit none
  real*8 :: m1,m2,rs1,rs2
@@ -74,6 +77,9 @@ contains
 
 end module binary
 
+!
+!--routines to return eta/zeta for a spinning black hole
+!
 module blackhole
  implicit none
  real*8 :: a_spin,rs
@@ -103,6 +109,9 @@ contains
 
 end module blackhole
 
+!----------------
+!  MAIN CODE
+!----------------
 program wave
  use waveutils
  use binary,    only:set_binary,get_binary
@@ -117,28 +126,27 @@ program wave
 !
  zi=(-1.d-20,1.)
 !
-!  set up grid, extending from r1 to r2 using n gridpoints
+!  set up grid, extending from rin to rout using n gridpoints
 !
  n=200
- r1=1.
- r2=90.
+ rin=1.
+ rout=90.
 !
-!   define the sizes of non-Keplerian terms at r1
+! define the sizes of non-Keplerian terms at Rin
 !
  mode = 'blackhole'
  select case(mode)
  case('blackhole')
     call set_bh(spin=0.5585d0,rsch=0.5d0) ! Schwarzschild Radius: Rin = 2Rs
-    call get_bh(r1,etazero,zetazero)
-    print*,' ETAZERO = ',etazero,' ZETAZERO = ',zetazero
-    read*
+    call get_bh(rin,etazero,zetazero)
  case('binary')
-    call set_binary(mass1=0.5d0,mass2=0.5d0,r1=0.25d0*r1,r2=0.25d0*r1)
-    call get_binary(r1,etazero,zetazero)
+    call set_binary(mass1=0.5d0,mass2=0.5d0,r1=0.25d0*rin,r2=0.25d0*rin)
+    call get_binary(rin,etazero,zetazero)
  case default
     zetazero=0.
     etazero=0.      
  end select
+ print*,' ETAZERO = ',etazero,' ZETAZERO = ',zetazero
 !
 !   define H/R at R=1
 !
@@ -151,34 +159,23 @@ program wave
  write(6,"(1x, 'H/R, eta0, zeta0, alpha ', 4(es12.4))") honr, etazero, zetazero, alpha
  write(6,"(1x, 'have set zi = ', 2(es12.4))") zi
 !
-!
 ! define the position of the initial step in tiltangle
 !
  rstep=20.
  wstep=2.
 
- write(6,"(1x, ' N, inner radius, outer radius', I6, 2(es12.4))") n, r1, r2
+ write(6,"(1x, ' N, inner radius, outer radius', I6, 2(es12.4))") n, rin, rout
  write(6,"(1x, ' rstep   wstep  ', 2(es12.4))") rstep,wstep
 
- call makegrid
-!
-! set up the disc
-! 
- call makedisc
-!
-! set up inital conditions
-!
-! we start with the disc tilted at a fixed angle
-!
- call setup
+ call makegrid  ! set up the radial grid
+ call makedisc  ! set up the disc
+ call setup     ! set up the initial conditions
 !
 ! set up the run parameters
 !
  jprint=10000000
  jcount=0
-
  nstep=0
-
  time=0.
  tstop=4000.
  tprint=2.*tstop
@@ -240,18 +237,18 @@ end program wave
 ! Subroutine to set up the grid points in r
 !
 subroutine makegrid
- use waveutils, only:n,r,r1,r2,n,dr,rsq,r12,r32
+ use waveutils, only:n,r,rin,rout,n,dr,rsq,r12,r32
  implicit none
  integer :: i
  real*8  :: factor
 
- r(2)=r1
- r(2*n+2)=r2
+ r(2)=rin
+ r(2*n+2)=rout
 
- factor=(r2/r1)**(1./float(2*n))
+ factor=(rout/rin)**(1./float(2*n))
 
  do i=3,2*n+1
-    r(i)=r1*factor**(i-2)
+    r(i)=rin*factor**(i-2)
  enddo
 
  do i=3,2*n+1
@@ -403,9 +400,7 @@ subroutine update
            +dt*zi*zeta(2*i+1)*omega(2*i+1)*zd2(i)
  enddo
 !
-! then update za1, which is at the full gridpoints,
-!   
-!
+! then update za1, which is at the full gridpoints:
 ! first keep za1=0 at the boundaries - for reflection off the boundaries
 !
   za1(1)=(0.,0.)
