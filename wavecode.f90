@@ -17,98 +17,6 @@
 !  Original code by Jim Pringle
 !  Modernised, converted to F90 etc. by Daniel Price, April 2013
 !
-module waveutils
- implicit none
- integer, parameter :: maxgrid = 2002
- complex*16, dimension(maxgrid) :: za1,za2,zd1,zd2  ! zvbles
- complex*16                     :: zi               ! zvbles
- real*8, dimension(2*maxgrid) :: r,dr,rsq,r12,r32 ! grid
- real*8, dimension(2*maxgrid) :: omega,rho,csq    ! disc
- real*8, dimension(2*maxgrid) :: eta, zeta        ! precess
- real*8  :: rin,rout           ! grid
- real*8  :: alpha           ! diss
- real*8  :: rstep,wstep     ! ics
- real*8  :: time,dt,ctime   ! tempus
- integer :: nstep,nfile     ! tempus
- integer :: n
- real*8, parameter :: pi = 4.*atan(1.)
- real*8  :: etazero,zetazero,honr         ! consts
-
-end module waveutils
-
-!
-!--routines to return eta/zeta for a binary potential
-!
-module binary
- implicit none
- real*8 :: m1,m2,rs1,rs2
- logical :: binaryset = .false.
- 
-contains
-
- subroutine set_binary(mass1,mass2,r1,r2)
-  real*8, intent(in) :: mass1,mass2,r1,r2
-  
-  m1 = mass1
-  m2 = mass2
-  rs1 = r1
-  rs2 = r2
-  binaryset = .true.
-
- end subroutine set_binary
-
- subroutine get_binary(r,eta,zeta)
-  real*8, intent(in)  :: r
-  real*8, intent(out) :: eta,zeta
-  real*8 :: term1,term2,omega2,omegaz2,kappa2
-  
-  if (.not. binaryset) stop 'error: binary not set'
-
-  term1 = (m1 + m2)/r**3
-  term2 = (m1*rs1**2 + m2*rs2**2)/r**5
-  omega2  = term1 +    0.75*term2
-  omegaz2 = term1 + 3.*0.75*term2
-  kappa2  = term1 -    0.75*term2
-
-  eta  = (kappa2 - omega2)/(2.*omega2)
-  zeta = (omegaz2 - omega2)/(2.*omega2)
-
- end subroutine get_binary
-
-end module binary
-
-!
-!--routines to return eta/zeta for a spinning black hole
-!
-module blackhole
- implicit none
- real*8 :: a_spin,rs
- logical :: bhset = .false.
- 
-contains
-
- subroutine set_bh(spin,rsch)
-  real*8, intent(in) :: spin,rsch
-  
-  a_spin = spin
-  rs = rsch
-  bhset = .true.
-
- end subroutine set_bh
-
- subroutine get_bh(r,eta,zeta)
-  real*8, intent(in)  :: r
-  real*8, intent(out) :: eta,zeta
-  
-  if (.not. bhset) stop 'error: black hole not set'
-
-  eta = -1.5*rs/r
-  zeta = -a_spin/sqrt(2.)*sqrt((rs/r)**3)
-
- end subroutine get_bh
-
-end module blackhole
-
 !----------------
 !  MAIN CODE
 !----------------
@@ -117,9 +25,9 @@ program wave
  use binary,    only:set_binary,get_binary
  use blackhole, only:set_bh,get_bh
  implicit none
- character(len=20) :: mode
  real*8     :: tcheck,tprint,tstop
  real*8     :: toutfile,tcheckout
+ real*8     :: t1,t2,omegazero
  integer    :: jcount,jprint
 !
 !  define the constant zi sqrt(-1)
@@ -128,9 +36,17 @@ program wave
 !
 !  set up grid, extending from rin to rout using n gridpoints
 !
- n=200
+ n=500
  rin=1.
- rout=90.
+ rout=35.
+!
+!   define H/R at R=1
+!
+ honr=0.1 !030
+!
+! define the dissipation coefficient
+!
+ alpha=0.1
 !
 ! define the sizes of non-Keplerian terms at Rin
 !
@@ -141,20 +57,17 @@ program wave
     call get_bh(rin,etazero,zetazero)
  case('binary')
     call set_binary(mass1=0.5d0,mass2=0.5d0,r1=0.25d0*rin,r2=0.25d0*rin)
-    call get_binary(rin,etazero,zetazero)
+    call get_binary(rin,etazero,zetazero,omegazero)
+ case('binary-alpha0')
+    call set_binary(mass1=0.5d0,mass2=0.5d0,r1=0.5d0*rin,r2=0.5d0*rin)
+    call get_binary(rin,etazero,zetazero,omegazero)
+    alpha = 0.2
+    mode = 'binary'
  case default
     zetazero=0.
     etazero=0.      
  end select
- print*,' ETAZERO = ',etazero,' ZETAZERO = ',zetazero
-!
-!   define H/R at R=1
-!
- honr=0.1030
-!
-! define the dissipation coefficient
-!
- alpha=0.05
+ print*,' ETAZERO = ',etazero,' ZETAZERO = ',zetazero,' OMEGAZERO = ',omegazero
 
  write(6,"(1x, 'H/R, eta0, zeta0, alpha ', 4(es12.4))") honr, etazero, zetazero, alpha
  write(6,"(1x, 'have set zi = ', 2(es12.4))") zi
@@ -177,20 +90,20 @@ program wave
  jcount=0
  nstep=0
  time=0.
- tstop=4000.
+ tstop=4000./8.+epsilon(0.)
  tprint=2.*tstop
  tcheck=0.
  ctime=0.03
 
- toutfile=tstop/10.
+ toutfile=5./8. !tstop/10.
  tcheckout=0.
  nfile=0
  write(6,"(1x, 'tstop toutfile ctime ', 3(es12.4))") tstop,toutfile,ctime
 !
 !   initial printout
 !
- call prdisc
- call print
+ !call prdisc
+ !call print
  call write_output_file
 !
 !   start the main evolution loop
@@ -199,6 +112,7 @@ program wave
 !
  call tstep
  write(6,"(1x,'timestep dt = ', es12.4)") dt
+ call cpu_time(t1)
 
  do while (time < tstop)
     nstep=nstep+1
@@ -217,7 +131,7 @@ program wave
     if(jcount.ge.jprint.or.tcheck.ge.tprint) then
        jcount=0
        tcheck=0.
-       call print
+       !call print
     endif
 !
 !  write to output file if necessary
@@ -225,6 +139,9 @@ program wave
     if(tcheckout.ge.toutfile) then
        tcheckout=0.
        call write_output_file
+       call cpu_time(t2)
+       print "(a,f6.2)",' cpu time since last dump = ',t2 - t1
+       t1 = t2
     endif
  enddo
 
@@ -240,7 +157,10 @@ subroutine makegrid
  use waveutils, only:n,r,rin,rout,n,dr,rsq,r12,r32
  implicit none
  integer :: i
- real*8  :: factor
+ real*8  :: factor,rinsav
+
+ rinsav = rin
+ rin = 1.
 
  r(2)=rin
  r(2*n+2)=rout
@@ -264,6 +184,8 @@ subroutine makegrid
     r32(i)=r(i)*r12(i)
  enddo
 
+ rin = rinsav
+
  return
 end subroutine makegrid
 
@@ -273,21 +195,37 @@ end subroutine makegrid
 !
 subroutine makedisc
  use waveutils, only:n,r,r32,honr,csq,omega,eta,zeta,etazero,zetazero,rho
+ use waveutils, only:mode
+ use blackhole, only:get_bh
+ use binary,    only:get_binary
  implicit none
  integer :: i
+ real*8, parameter :: p_index = 1.5
+ real*8, parameter :: q_index = 0.75
 
  do i=2,2*n+2
-    rho(i)=r(i)
+!    rho(i) = Sigma*H**2 = (R**-p)*(R**(-q+3/2))^2
+    rho(i)=r(i)**(3. - 2.*q_index - p_index)
 !
 !  note that rho = Sigma H^2
-!     csq is suare of the sound speed
+!     csq is square of the sound speed
 !     omega is the angular velocity of the disc
 !
-    csq(i)=((honr)**2)/r32(i)
+!    csq(i)=((honr)**2)/r32(i)
+    csq(i)=((honr)**2)*r(i)**(-2.*q_index)
     omega(i)=r(i)**(-1.5)
 
-    eta(i)=etazero/r(i)
-    zeta(i)=zetazero/r32(i)
+    select case(trim(mode))
+    case('blackhole')
+       call get_bh(r(i),eta(i),zeta(i))
+    case('binary')
+       call get_binary(r(i),eta(i),zeta(i),omega(i))
+!       print*,' got BINARY',eta(i),zeta(i)
+!       read*
+    case default
+       eta(i)=etazero/r(i)
+       zeta(i)=zetazero/r32(i)
+    end select
  enddo
 
  return
@@ -314,13 +252,14 @@ subroutine setup
 
  do i=1,n
     radius=r(2*i+1)
-    if(radius.lt.rstep-wstep) then
-       tilt=0.
-    elseif(radius.gt.rstep+wstep) then
-       tilt=1.
-    else
-       tilt=0.5*(1.+sin(pi*(radius-rstep)/2./wstep))
-    endif
+    !if(radius.lt.rstep-wstep) then
+    !   tilt=0.
+    !elseif(radius.gt.rstep+wstep) then
+    !   tilt=1.
+    !else
+    !   tilt=0.5*(1.+sin(pi*(radius-rstep)/2./wstep))
+    !endif
+    tilt = sin(5.*pi/180.)
 
     zd1(i)=cmplx(tilt/rsq(2*i+1),0.)
     zd2(i)=cmplx(tilt/rsq(2*i+1),0.)
@@ -483,7 +422,7 @@ subroutine prdisc
 ! Prints output file
 !
 subroutine write_output_file
- use waveutils, only:n,rsq,zd1,zi,r,nstep,time,nfile
+ use waveutils, only:n,rsq,zd1,zi,r,nstep,time,nfile,mode
  implicit none
  integer    :: i
  complex*16 :: ztilt
@@ -492,9 +431,14 @@ subroutine write_output_file
 
  write(filename,"('wave_',i5.5)") nfile
  open(unit=24,file=filename,status='replace',form='formatted')
- write(6,"(a,i6,a,es12.4,a)") ' nstep ',nstep,' time = ',time,' writing '//trim(filename)
+ write(6,"(a,i10,a,es12.4,a)") ' nstep ',nstep,' time = ',time,' writing '//trim(filename)
 
- write(24,*) time,nstep
+ if (trim(mode)=='blackhole') then
+    print*,' time = ',time,' translating to ',8.*time
+    write(24,*) 8.*time,nstep
+ else
+    write(24,*) time,nstep 
+ endif
  do i=1,n+1
     ztilt=zd1(i)*rsq(2*i+1)
 
@@ -503,7 +447,11 @@ subroutine write_output_file
     tilt=abs(ztilt)
     phase=atan2(xitilt,rtilt)
 
-    write(24,"(1x,5F12.4)") r(2*i), ztilt, tilt, phase
+    if (trim(mode)=='blackhole') then
+       write(24,"(1x,7F12.4)") 4.*r(2*i), ztilt, tilt, phase, tilt, tilt    
+    else
+       write(24,"(1x,7F12.4)") r(2*i), ztilt, tilt, phase, tilt, tilt
+    endif
  enddo
  close(unit=24)
 
@@ -511,11 +459,3 @@ subroutine write_output_file
 
  return
 end subroutine write_output_file
-
-
-
-
-
-
-
-
