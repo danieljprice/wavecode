@@ -38,15 +38,15 @@ program wave
 !
  n=500
  rin=1.
- rout=35.
+ rout=50. !35.
 !
 !   define H/R at R=1
 !
- honr=0.1 !030
+ honr=0.1030 !030
 !
 ! define the dissipation coefficient
 !
- alpha=0.1
+ alpha=0.05
 !
 ! define the sizes of non-Keplerian terms at Rin
 !
@@ -90,12 +90,12 @@ program wave
  jcount=0
  nstep=0
  time=0.
- tstop=4000./8.+epsilon(0.)
+ tstop=4000.!/8.+epsilon(0.)
  tprint=2.*tstop
  tcheck=0.
  ctime=0.03
 
- toutfile=5./8. !tstop/10.
+ toutfile=tstop/10.
  tcheckout=0.
  nfile=0
  write(6,"(1x, 'tstop toutfile ctime ', 3(es12.4))") tstop,toutfile,ctime
@@ -252,14 +252,14 @@ subroutine setup
 
  do i=1,n
     radius=r(2*i+1)
-    !if(radius.lt.rstep-wstep) then
-    !   tilt=0.
-    !elseif(radius.gt.rstep+wstep) then
-    !   tilt=1.
-    !else
-    !   tilt=0.5*(1.+sin(pi*(radius-rstep)/2./wstep))
-    !endif
-    tilt = sin(5.*pi/180.)
+    if(radius.lt.rstep-wstep) then
+       tilt=0.
+    elseif(radius.gt.rstep+wstep) then
+       tilt=1.
+    else
+       tilt=0.5*(1.+sin(pi*(radius-rstep)/2./wstep))
+    endif
+    !tilt = sin(5.*pi/180.)
 
     zd1(i)=cmplx(tilt/rsq(2*i+1),0.)
     zd2(i)=cmplx(tilt/rsq(2*i+1),0.)
@@ -448,7 +448,7 @@ subroutine write_output_file
     phase=atan2(xitilt,rtilt)
 
     if (trim(mode)=='blackhole') then
-       write(24,"(1x,7F12.4)") 4.*r(2*i), ztilt, tilt, phase, tilt, tilt    
+       write(24,"(1x,7F12.4)") r(2*i), ztilt, tilt, phase, tilt, tilt    
     else
        write(24,"(1x,7F12.4)") r(2*i), ztilt, tilt, phase, tilt, tilt
     endif
