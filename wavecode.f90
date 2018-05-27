@@ -38,7 +38,7 @@ program wave
 !
  n=500
  rin=1.
- rout=50. !35.
+ rout=90. !35.
 !
 !   define H/R at R=1
 !
@@ -259,7 +259,7 @@ subroutine setup
     else
        tilt=0.5*(1.+sin(pi*(radius-rstep)/2./wstep))
     endif
-    !tilt = sin(5.*pi/180.)
+    !tilt = sin(3.*pi/180.)
 
     zd1(i)=cmplx(tilt/rsq(2*i+1),0.)
     zd2(i)=cmplx(tilt/rsq(2*i+1),0.)
