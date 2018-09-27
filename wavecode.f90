@@ -200,7 +200,7 @@ subroutine makedisc
  use binary,    only:get_binary
  implicit none
  integer :: i
- real, parameter :: p_index = 1.5
+ real, parameter :: p_index = 0.5
  real, parameter :: q_index = 0.75
 
  do i=2,2*n+2
