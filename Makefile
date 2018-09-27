@@ -1,9 +1,9 @@
 .KEEP_STATE:
 
-FORTRAN = gfortran-mp-4.7
-FC = gfortran-mp-4.7
+FORTRAN = gfortran
+FC = gfortran
 
-FFLAGS = -O3 -g -Wall -ffast-math -finline-limit=1500 -ftree-vectorize -funroll-loops
+FFLAGS = -O3 -g -Wall -ffast-math -finline-limit=1500 -ftree-vectorize -funroll-loops -pedantic -fdefault-real-8 -fdefault-integer-8
 
 SOURCES= waveutils.f90 binary.f90 blackhole.f90 wavecode.f90
 

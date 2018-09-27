@@ -1,6 +1,6 @@
 !
 !  this is prog08.f
-!    .... with the precession put in by leapfrog 
+!    .... with the precession put in by leapfrog
 !
 !     this solves for the propagation of a warp wave through a Keplerian
 !     disc. It uses the warp equations as given in Lubow, Ogilvie &
@@ -25,19 +25,19 @@ program wave
  use binary,    only:set_binary,get_binary
  use blackhole, only:set_bh,get_bh
  implicit none
- real*8     :: tcheck,tprint,tstop
- real*8     :: toutfile,tcheckout
- real*8     :: t1,t2,omegazero
+ real     :: tcheck,tprint,tstop
+ real     :: toutfile,tcheckout
+ real     :: t1,t2,omegazero
  integer    :: jcount,jprint
 !
 !  define the constant zi sqrt(-1)
 !
- zi=(-1.d-20,1.)
+ zi=(0.0,1.)
 !
 !  set up grid, extending from rin to rout using n gridpoints
 !
  n=500
- rin=1.
+ rin=10.
  rout=90. !35.
 !
 !   define H/R at R=1
@@ -53,19 +53,19 @@ program wave
  mode = 'blackhole'
  select case(mode)
  case('blackhole')
-    call set_bh(spin=0.5585d0,rsch=0.5d0) ! Schwarzschild Radius: Rin = 2Rs
+    call set_bh(spin=0.5585,rsch=0.5) ! Schwarzschild Radius: Rin = 2Rs
     call get_bh(rin,etazero,zetazero)
  case('binary')
-    call set_binary(mass1=0.5d0,mass2=0.5d0,r1=0.25d0*rin,r2=0.25d0*rin)
+    call set_binary(mass1=0.5,mass2=0.5,r1=0.25*rin,r2=0.25*rin)
     call get_binary(rin,etazero,zetazero,omegazero)
  case('binary-alpha0')
-    call set_binary(mass1=0.5d0,mass2=0.5d0,r1=0.5d0*rin,r2=0.5d0*rin)
+    call set_binary(mass1=0.5,mass2=0.5,r1=0.5*rin,r2=0.5*rin)
     call get_binary(rin,etazero,zetazero,omegazero)
     alpha = 0.2
     mode = 'binary'
  case default
     zetazero=0.
-    etazero=0.      
+    etazero=0.
  end select
  print*,' ETAZERO = ',etazero,' ZETAZERO = ',zetazero,' OMEGAZERO = ',omegazero
 
@@ -157,7 +157,7 @@ subroutine makegrid
  use waveutils, only:n,r,rin,rout,n,dr,rsq,r12,r32
  implicit none
  integer :: i
- real*8  :: factor,rinsav
+ real  :: factor,rinsav
 
  rinsav = rin
  rin = 1.
@@ -200,8 +200,8 @@ subroutine makedisc
  use binary,    only:get_binary
  implicit none
  integer :: i
- real*8, parameter :: p_index = 1.5
- real*8, parameter :: q_index = 0.75
+ real, parameter :: p_index = 1.5
+ real, parameter :: q_index = 0.75
 
  do i=2,2*n+2
 !    rho(i) = Sigma*H**2 = (R**-p)*(R**(-q+3/2))^2
@@ -241,7 +241,7 @@ subroutine setup
  use waveutils, only:n,r,pi,za1,za2,zd1,zd2,rstep,wstep,rsq
  implicit none
  integer :: i
- real*8  :: radius,tilt
+ real  :: radius,tilt
 
  do i=1,n+1
     za1(i)=(0.,0.)
@@ -275,7 +275,7 @@ subroutine tstep
  use waveutils, only:n,dr,dt,csq,omega,eta,zi,ctime,zeta
  implicit none
  integer :: i,izone,itype
- real*8  :: tiny,dtry1,dtry2,dtry3
+ real  :: epsilon,dtry1,dtry2,dtry3
 !
 !  **** have not included dissipation term in this
 !
@@ -283,15 +283,15 @@ subroutine tstep
 !
  izone=0
  itype=0
- tiny=1.d-20
- dt=1.d20
+ epsilon=tiny(epsilon)
+ dt=huge(dt)
 
  do i=2,n
     dtry1=dr(2*i)/sqrt(csq(2*i))
-    dtry2=abs(zi)*omega(2*i)*eta(i)+tiny
+    dtry2=abs(zi)*omega(2*i)*eta(i)+epsilon
     dtry2=0.1/(abs(dtry2))
 
-    dtry3=abs(zi)*omega(2*i)*zeta(i)+tiny
+    dtry3=abs(zi)*omega(2*i)*zeta(i)+epsilon
     dtry3=0.1/(abs(dtry3))
 
     if(dtry1.lt.dt) then
@@ -350,7 +350,7 @@ subroutine update
  do i=2,n
     za1(i)=za1(i) -dt*.5/rsq(2*i)*(rsq(2*i+1)*zd2(i)-rsq(2*i-1)*zd2(i-1))/dr(2*i) &
                   +dt*zi*eta(2*i)*omega(2*i)*za2(i) &
-                  -dt*alpha*omega(2*i)*za1(i) 
+                  -dt*alpha*omega(2*i)*za1(i)
  enddo
 !
 ! then we update zd2, which is at the half-gridpoints
@@ -373,7 +373,7 @@ subroutine update
  do i=2,n
     za2(i)=za2(i) - dt*.5/rsq(2*i)*(rsq(2*i+1)*zd1(i)-rsq(2*i-1)*zd1(i-1))/dr(2*i) &
                   + dt*zi*eta(2*i)*omega(2*i)*za1(i) &
-                  - dt*alpha*omega(2*i)*za2(i) 
+                  - dt*alpha*omega(2*i)*za2(i)
  enddo
 
  return
@@ -403,7 +403,7 @@ subroutine prdisc
  use waveutils, only:n,r,dr,rho,csq,omega,eta,zeta
  implicit none
  integer :: j
- 
+
  write(6,"(1x, 'j,  r(j),  dr(j), rho(j), csq(j)')")
  do j=1,2*n+2
     write(6,"(1x, I4, 4(es12.4))") j,r(j),dr(j),rho(j),csq(j)
@@ -425,8 +425,8 @@ subroutine write_output_file
  use waveutils, only:n,rsq,zd1,zi,r,nstep,time,nfile,mode
  implicit none
  integer    :: i
- complex*16 :: ztilt
- real*8     :: rtilt,xitilt,tilt,phase
+ complex :: ztilt
+ real     :: rtilt,xitilt,tilt,phase
  character(len=120) :: filename
 
  write(filename,"('wave_',i5.5)") nfile
@@ -437,18 +437,18 @@ subroutine write_output_file
     print*,' time = ',time,' translating to ',8.*time
     write(24,*) 8.*time,nstep
  else
-    write(24,*) time,nstep 
+    write(24,*) time,nstep
  endif
  do i=1,n+1
     ztilt=zd1(i)*rsq(2*i+1)
 
-    rtilt=ztilt
-    xitilt=-zi*ztilt
+    rtilt=real(ztilt)
+    xitilt=real(-zi*ztilt)
     tilt=abs(ztilt)
     phase=atan2(xitilt,rtilt)
 
     if (trim(mode)=='blackhole') then
-       write(24,"(1x,7F12.4)") r(2*i), ztilt, tilt, phase, tilt, tilt    
+       write(24,"(1x,7F12.4)") r(2*i), ztilt, tilt, phase, tilt, tilt
     else
        write(24,"(1x,7F12.4)") r(2*i), ztilt, tilt, phase, tilt, tilt
     endif
