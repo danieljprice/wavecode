@@ -3,14 +3,14 @@
 !
 module blackhole
  implicit none
- real*8 :: a_spin,rs
+ real :: a_spin,rs
  logical :: bhset = .false.
- 
+
 contains
 
  subroutine set_bh(spin,rsch)
-  real*8, intent(in) :: spin,rsch
-  
+  real, intent(in) :: spin,rsch
+
   a_spin = spin
   rs = rsch
   bhset = .true.
@@ -18,9 +18,9 @@ contains
  end subroutine set_bh
 
  subroutine get_bh(r,eta,zeta)
-  real*8, intent(in)  :: r
-  real*8, intent(out) :: eta,zeta
-  
+  real, intent(in)  :: r
+  real, intent(out) :: eta,zeta
+
   if (.not. bhset) stop 'error: black hole not set'
 
   eta = -1.5*rs/r

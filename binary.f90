@@ -3,14 +3,14 @@
 !
 module binary
  implicit none
- real*8 :: m1,m2,rs1,rs2
+ real :: m1,m2,rs1,rs2
  logical :: binaryset = .false.
  
 contains
 
  subroutine set_binary(mass1,mass2,r1,r2)
-  real*8, intent(in) :: mass1,mass2,r1,r2
-  
+  real, intent(in) :: mass1,mass2,r1,r2
+
   m1 = mass1
   m2 = mass2
   rs1 = r1
@@ -20,10 +20,10 @@ contains
  end subroutine set_binary
 
  subroutine get_binary(r,eta,zeta,omega)
-  real*8, intent(in)  :: r
-  real*8, intent(out) :: eta,zeta,omega
-  real*8 :: term1,term2,omega2,omegaz2,kappa2
-  
+  real, intent(in)  :: r
+  real, intent(out) :: eta,zeta,omega
+  real :: term1,term2,omega2,omegaz2,kappa2
+
   if (.not. binaryset) stop 'error: binary not set'
 
   term1 = (m1 + m2)/r**3
@@ -37,5 +37,5 @@ contains
   omega = sqrt(omega2)
 
  end subroutine get_binary
- 
+
 end module binary
