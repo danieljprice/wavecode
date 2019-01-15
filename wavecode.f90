@@ -195,17 +195,74 @@ end subroutine makegrid
 !
 subroutine makedisc
  use waveutils, only:n,r,r32,honr,csq,omega,eta,zeta,etazero,zetazero,rho
+ use waveutils, only:sigma,scale_height
  use waveutils, only:mode
  use blackhole, only:get_bh
  use binary,    only:get_binary
  implicit none
- integer :: i
+ integer :: i,ierr,nlines,j
+ integer, parameter :: isigma = 10
  real, parameter :: p_index = 0.5
  real, parameter :: q_index = 0.75
+ real :: gradient
+ real, dimension(:), allocatable :: ext_sigma,ext_radius
+ logical :: use_ext_sigma_profile,iexist,found_r
+
+ use_ext_sigma_profile = .false.
+ nlines = 0
+ inquire(file='sigma_profile.txt',exist=iexist)
+ if (iexist) then
+   use_ext_sigma_profile = .true.
+   print*,'Using the provided sigma profile'
+ endif
+
+ ! If a sigma profile is provided, read it in
+  if (use_ext_sigma_profile) then
+    open(unit=isigma,file='sigma_profile.txt',status='old',form='formatted',iostat=ierr)
+    ! Work out how long the file is
+    do while (ierr == 0)
+      read(isigma,*,iostat=ierr)
+      nlines = nlines + 1
+    enddo
+    nlines = nlines - 3 ! To take account of the header
+    close(unit=isigma)
+
+    ! Now save the profile
+    allocate(ext_sigma(nlines),ext_radius(nlines))
+    open(unit=isigma,file='sigma_profile.txt',status='old',form='formatted',iostat=ierr)
+    read(isigma,*)
+    read(isigma,*)
+    do i = 1,nlines
+      read(isigma,*) ext_radius(i),ext_sigma(i)
+    enddo
+    close(unit=isigma)
+    ext_radius = 0.25*ext_radius ! This is because of the scaling
+  endif
 
  do i=2,2*n+2
 !    rho(i) = Sigma*H**2 = (R**-p)*(R**(-q+3/2))^2
-    rho(i)=r(i)**(3. - 2.*q_index - p_index)
+    if (use_ext_sigma_profile) then
+      ! Linearly interpolate for each radial value what the sigma value should be
+      found_r = .false.
+      j = 1
+      do while (.not.found_r)
+        ! Find the correct radial bin
+        if (ext_radius(j) <= r(i) .and. r(i) <= ext_radius(j+1)) then
+          found_r = .true.
+        else
+          j = j + 1
+          if (j > nlines) print*,'problem with provided sigma'
+        endif
+      enddo
+      ! Interpolate between the nearest two points
+      ! Split the equation into two lines for convenience
+      gradient = (ext_sigma(j+1) - ext_sigma(j))/(ext_radius(j+1) - ext_radius(j))
+      sigma(i) = ext_sigma(j) + (r(i) - ext_radius(j))*gradient
+    else
+      sigma(i)=r(i)**(-p_index)
+    endif
+    scale_height(i) = honr*r(i)**(-2*q_index + 3)
+    rho(i) = sigma(i)*scale_height(i)
 !
 !  note that rho = Sigma H^2
 !     csq is square of the sound speed
