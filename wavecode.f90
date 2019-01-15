@@ -36,17 +36,17 @@ program wave
 !
 !  set up grid, extending from rin to rout using n gridpoints
 !
- n=500
+ n=300
  rin=10.
- rout=90. !35.
+ rout=40. !35.
 !
 !   define H/R at R=1
 !
- honr=0.1030 !030
+ honr=0.05 !030
 !
 ! define the dissipation coefficient
 !
- alpha=0.05
+ alpha=0.02
 !
 ! define the sizes of non-Keplerian terms at Rin
 !
@@ -316,7 +316,7 @@ subroutine setup
     else
        tilt=0.5*(1.+sin(pi*(radius-rstep)/2./wstep))
     endif
-    !tilt = sin(3.*pi/180.)
+    tilt = sin(3.*pi/180.)
 
     zd1(i)=cmplx(tilt/rsq(2*i+1),0.)
     zd2(i)=cmplx(tilt/rsq(2*i+1),0.)
@@ -505,7 +505,7 @@ subroutine write_output_file
     phase=atan2(xitilt,rtilt)
 
     if (trim(mode)=='blackhole') then
-       write(24,"(1x,7F12.4)") r(2*i), ztilt, tilt, phase, tilt, tilt
+       write(24,"(1x,7F12.4)") 4.*r(2*i), ztilt, tilt, phase, tilt, tilt
     else
        write(24,"(1x,7F12.4)") r(2*i), ztilt, tilt, phase, tilt, tilt
     endif
