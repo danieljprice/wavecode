@@ -204,10 +204,12 @@ subroutine makedisc
  integer, parameter :: isigma = 10
  real, parameter :: p_index = 0.5
  real, parameter :: q_index = 0.75
- real :: gradient
+ real :: gradient, sigma_tolerance
  real, dimension(:), allocatable :: ext_sigma,ext_radius
  logical :: use_ext_sigma_profile,iexist,found_r
 
+
+ sigma_tolerance = 1.e-13
  use_ext_sigma_profile = .false.
  nlines = 0
  inquire(file='sigma_profile.txt',exist=iexist)
@@ -258,6 +260,7 @@ subroutine makedisc
       ! Split the equation into two lines for convenience
       gradient = (ext_sigma(j+1) - ext_sigma(j))/(ext_radius(j+1) - ext_radius(j))
       sigma(i) = ext_sigma(j) + (r(i) - ext_radius(j))*gradient
+      if (abs(sigma(i)) < sigma_tolerance) sigma(i) = sigma_tolerance
     else
       sigma(i)=r(i)**(-p_index)
     endif
