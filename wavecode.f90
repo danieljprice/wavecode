@@ -53,7 +53,7 @@ program wave
  mode = 'blackhole'
  select case(mode)
  case('blackhole')
-    call set_bh(spin=0.5585,rsch=0.5) ! Schwarzschild Radius: Rin = 2Rs
+    call set_bh(spin=0.9,rsch=0.5) ! Schwarzschild Radius: Rin = 2Rs
     call get_bh(rin,etazero,zetazero)
  case('binary')
     call set_binary(mass1=0.5,mass2=0.5,r1=0.25*rin,r2=0.25*rin)
@@ -90,12 +90,12 @@ program wave
  jcount=0
  nstep=0
  time=0.
- tstop=4000.!/8.+epsilon(0.)
+ tstop=12000.!/8.+epsilon(0.)
  tprint=2.*tstop
  tcheck=0.
  ctime=0.03
 
- toutfile=tstop/10.
+ toutfile=tstop/100.
  tcheckout=0.
  nfile=0
  write(6,"(1x, 'tstop toutfile ctime ', 3(es12.4))") tstop,toutfile,ctime
