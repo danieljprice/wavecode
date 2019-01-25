@@ -20,11 +20,25 @@ contains
  subroutine get_bh(r,eta,zeta)
   real, intent(in)  :: r
   real, intent(out) :: eta,zeta
+  real :: term
+  logical :: use_pn
 
   if (.not. bhset) stop 'error: black hole not set'
 
-  eta = -1.5*rs/r
-  zeta = -a_spin/sqrt(2.)*sqrt((rs/r)**3)
+  use_pn = .true.   ! Set to true to use the PN frequencies rather than the GR
+  term = 0.
+
+  if (.not.use_pn) then
+    eta = -1.5*rs/r + sqrt(2.)*a_spin*(rs/r)**1.5 - 3./8.*(a_spin*rs/r)**2
+    zeta = -a_spin/sqrt(2.)*sqrt((rs/r)**3) + 3./8.*(a_spin*rs/r)**2
+  else
+    ! In the PN case, we assume G=M=c=1. See frequencies in NPN15.
+    print*,'Using the PN frequencies!'
+    term = 2.*r**1.5 - 4.*a_spin
+    eta = 3.*a_spin/term
+    zeta = -4.*a_spin/term
+  endif
+
 
  end subroutine get_bh
 
