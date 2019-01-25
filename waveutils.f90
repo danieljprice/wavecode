@@ -16,5 +16,6 @@ module waveutils
  real, parameter :: pi = 4.*atan(1.)
  real  :: etazero,zetazero,honr         ! consts
  character(len=20) :: mode
+ logical :: use_ext_sigma_profile
 
 end module waveutils

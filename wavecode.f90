@@ -90,12 +90,12 @@ program wave
  jcount=0
  nstep=0
  time=0.
- tstop=12000.!/8.+epsilon(0.)
+ tstop=5000.!/8.+epsilon(0.)
  tprint=2.*tstop
  tcheck=0.
  ctime=0.03
 
- toutfile=tstop/100.
+ toutfile=tstop/40.
  tcheckout=0.
  nfile=0
  write(6,"(1x, 'tstop toutfile ctime ', 3(es12.4))") tstop,toutfile,ctime
@@ -195,21 +195,21 @@ end subroutine makegrid
 !
 subroutine makedisc
  use waveutils, only:n,r,r32,honr,csq,omega,eta,zeta,etazero,zetazero,rho
- use waveutils, only:sigma,scale_height
+ use waveutils, only:sigma,scale_height,use_ext_sigma_profile
  use waveutils, only:mode
  use blackhole, only:get_bh
  use binary,    only:get_binary
  implicit none
  integer :: i,ierr,nlines,j
  integer, parameter :: isigma = 10
- real, parameter :: p_index = 0.5
+ real, parameter :: p_index = 1.5
  real, parameter :: q_index = 0.75
  real :: gradient, sigma_tolerance
  real, dimension(:), allocatable :: ext_sigma,ext_radius
- logical :: use_ext_sigma_profile,iexist,found_r
+ logical :: iexist,found_r
 
 
- sigma_tolerance = 1.e-13
+ sigma_tolerance = 1.e-14
  use_ext_sigma_profile = .false.
  nlines = 0
  inquire(file='sigma_profile.txt',exist=iexist)
@@ -262,7 +262,7 @@ subroutine makedisc
       sigma(i) = ext_sigma(j) + (r(i) - ext_radius(j))*gradient
       if (abs(sigma(i)) < sigma_tolerance) sigma(i) = sigma_tolerance
     else
-      sigma(i)=r(i)**(-p_index)
+      sigma(i)=r(i)**(-p_index) !*(1. - sqrt(1./r(i)))
     endif
     scale_height(i) = honr*r(i)**(-2*q_index + 3)
     rho(i) = sigma(i)*scale_height(i)
@@ -482,14 +482,15 @@ subroutine prdisc
 ! Prints output file
 !
 subroutine write_output_file
- use waveutils, only:n,rsq,zd1,zi,r,nstep,time,nfile,mode
+ use waveutils, only:n,rsq,zd1,zi,r,nstep
+ use waveutils, only:time,nfile,mode,sigma,use_ext_sigma_profile
  implicit none
  integer    :: i
  complex :: ztilt
  real     :: rtilt,xitilt,tilt,phase
  character(len=120) :: filename
 
- write(filename,"('wave_',i5.5)") nfile
+ write(filename,"('angm',i5.5,'.exact')") nfile
  open(unit=24,file=filename,status='replace',form='formatted')
  write(6,"(a,i10,a,es12.4,a)") ' nstep ',nstep,' time = ',time,' writing '//trim(filename)
 
@@ -508,14 +509,18 @@ subroutine write_output_file
     phase=atan2(xitilt,rtilt)
 
     if (trim(mode)=='blackhole') then
-       write(24,"(1x,7F12.4)") 4.*r(2*i), ztilt, tilt, phase, tilt, tilt
+       if (use_ext_sigma_profile) then
+         write(24,"(7(es18.10,1X))") 4.*r(2*i), sigma(2*i), real(ztilt), tilt, phase, tilt, tilt
+       else
+         write(24,"(7(es18.10,1X))") 4.*r(2*i), 0.0, real(ztilt), tilt, phase, tilt, tilt
+       endif
     else
        write(24,"(1x,7F12.4)") r(2*i), ztilt, tilt, phase, tilt, tilt
     endif
  enddo
  close(unit=24)
 
- nfile = nfile + 1
+ nfile = nfile + 10
 
  return
 end subroutine write_output_file
