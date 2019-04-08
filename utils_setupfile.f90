@@ -19,7 +19,7 @@ subroutine write_setupfile(filename)
 
  print "(a)",' writing setup options file '//trim(filename)
  open(unit=iunit,file=filename,status='replace',form='formatted')
- write(iunit,"(a)") '# setup file for wavecode'
+ write(iunit,"(a)") '# Setup file for wavecode:'
  call write_inopt(n      ,'n'      ,'number of grid points'             ,iunit)
  call write_inopt(rin    ,'rin'    ,'inner edge'                        ,iunit)
  call write_inopt(rout   ,'rout'   ,'outer edge'                        ,iunit)
@@ -28,11 +28,13 @@ subroutine write_setupfile(filename)
  call write_inopt(mode   ,'mode'   ,'blackhole, binary, or binar-alpha0',iunit)
 
  if (trim(mode)=='blackhole') then
+    write(iunit,"(/a)") '#------ Only used if mode == blackhole ----------------------------------------------'
     call write_inopt(use_pn,'use_pn_freqs','use post-Newtonian frequencies (logical)',iunit)
     call write_inopt(spin  ,'spin'        ,'spin parameter of black hole |a|<1'      ,iunit)
  endif
 
  if (.not.use_ext_sigma_profile) then
+    write(iunit,"(/a)") '#------ Only used if not reading sigma (& more) from an external file ---------------'
     call write_inopt(alphaSS,'alphaSS','dissipation parameter'                     ,iunit)
     call write_inopt(p_index,'p_index','power law index of surface density profile',iunit)
     call write_inopt(q_index,'q_index','power law index of sound speed profile'    ,iunit)
@@ -93,6 +95,9 @@ subroutine runtime_parameters()
     print*,' Edit '//trim(filename)//' and rerun wavecode'
     stop
  endif
+
+ call execute_command_line('cat setup.file')
+ print*
 
 end subroutine runtime_parameters
 
