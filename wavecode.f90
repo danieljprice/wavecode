@@ -28,7 +28,7 @@ program wave
  use blackhole,       only:set_bh,get_bh
  use utils_setupfile, only:runtime_parameters
 
-implicit none
+ implicit none
  real     :: tcheck,tprint,tstop
  real     :: toutfile,tcheckout
  real     :: t1,t2,omegazero
@@ -108,18 +108,18 @@ implicit none
  call setup     ! set up the initial conditions
 
 ! set up the run parameters
- jprint=10000000
- jcount=0
- nstep=0
- time=0.
- tstop=5000.!/8.+epsilon(0.)
- tprint=2.*tstop
- tcheck=0.
- ctime=0.03
+ jprint = 10000000
+ jcount = 0
+ nstep  = 0
+ time   = 0.
+ tstop  = 5000.!/8.+epsilon(0.)
+ tprint = 2.*tstop
+ tcheck = 0.
+ ctime  = 0.03
 
- toutfile=tstop/40.
- tcheckout=0.
- nfile=0
+ toutfile  = tstop/40.
+ tcheckout = 0.
+ nfile     = 0
  write(6,"(1x, 'tstop toutfile ctime ', 3(es12.4))") tstop,toutfile,ctime
 !
 !   initial printout
@@ -234,7 +234,7 @@ subroutine makedisc
  nlines = 0
 
  ! If a sigma profile is provided, read it in
-  if (use_ext_sigma_profile) then
+ if (use_ext_sigma_profile) then
     call get_command_argument(1,fname)
     open(unit=isigma,file=fname,status='old',form='formatted',iostat=ierr)
     if (ierr/=0) STOP 'Could not open file!'
@@ -244,8 +244,8 @@ subroutine makedisc
 
     ! Work out how long the file is
     do while (ierr == 0)
-      read(isigma,*,iostat=ierr)
-      nlines = nlines + 1
+       read(isigma,*,iostat=ierr)
+       nlines = nlines + 1
     enddo
     nlines = nlines - 3 ! To take account of the header
     close(unit=isigma)
@@ -256,37 +256,37 @@ subroutine makedisc
     read(isigma,*)
     read(isigma,*)
     do i = 1,nlines
-      read(isigma,*) ext_radius(i),ext_sigma(i),ext_honh(i)
+       read(isigma,*) ext_radius(i),ext_sigma(i),ext_honh(i)
     enddo
     close(unit=isigma)
     ext_radius = 0.25*ext_radius ! This is because of the scaling
-  endif
+ endif
 
  do i=2,2*n+2
 !    rho(i) = Sigma*H**2 = (R**-p)*(R**(-q+3/2))^2
     if (use_ext_sigma_profile) then
-      ! Linearly interpolate for each radial value what the sigma value should be
-      found_r = .false.
-      j = 1
-      do while (.not.found_r)
-        ! Find the correct radial bin
-        if (ext_radius(j) <= r(i) .and. r(i) <= ext_radius(j+1)) then
-          found_r = .true.
-        else
-          j = j + 1
-          if (j > nlines) print*,'problem with provided sigma'
-        endif
-      enddo
-      ! Interpolate between the nearest two points
-      ! Split the equation into two lines for convenience
-      gradient = (ext_sigma(j+1) - ext_sigma(j))/(ext_radius(j+1) - ext_radius(j))
-      sigma(i) = ext_sigma(j) + (r(i) - ext_radius(j))*gradient
-      if (abs(sigma(i)) < sigma_tolerance) sigma(i) = sigma_tolerance
-      gradient = (ext_honh(j+1) - ext_honh(j))/(ext_radius(j+1) - ext_radius(j))
-      alpha(i) = 1./10. * alphaAV * (ext_honh(j) + (r(i) - ext_radius(j))*gradient)
+       ! Linearly interpolate for each radial value what the sigma value should be
+       found_r = .false.
+       j = 1
+       do while (.not.found_r)
+          ! Find the correct radial bin
+          if (ext_radius(j) <= r(i) .and. r(i) <= ext_radius(j+1)) then
+             found_r = .true.
+          else
+             j = j + 1
+             if (j > nlines) print*,'problem with provided sigma'
+          endif
+       enddo
+       ! Interpolate between the nearest two points
+       ! Split the equation into two lines for convenience
+       gradient = (ext_sigma(j+1) - ext_sigma(j))/(ext_radius(j+1) - ext_radius(j))
+       sigma(i) = ext_sigma(j) + (r(i) - ext_radius(j))*gradient
+       if (abs(sigma(i)) < sigma_tolerance) sigma(i) = sigma_tolerance
+       gradient = (ext_honh(j+1) - ext_honh(j))/(ext_radius(j+1) - ext_radius(j))
+       alpha(i) = 1./10. * alphaAV * (ext_honh(j) + (r(i) - ext_radius(j))*gradient)
     else
-      sigma(i)=r(i)**(-p_index) !*(1. - sqrt(1./r(i)))
-      alpha(i)=alphaSS
+       sigma(i)=r(i)**(-p_index) !*(1. - sqrt(1./r(i)))
+       alpha(i)=alphaSS
     endif
     scale_height(i) = honr*r(i)**(-2*q_index + 3)
     rho(i) = sigma(i)*scale_height(i)
@@ -426,8 +426,8 @@ subroutine update
 ! then update za1, which is at the full gridpoints:
 ! first keep za1=0 at the boundaries - for reflection off the boundaries
 !
-  za1(1)=(0.,0.)
-  za1(n+1)=(0.,0.)
+ za1(1)=(0.,0.)
+ za1(n+1)=(0.,0.)
 !
 ! then update the bulk of the grid
 !
@@ -500,7 +500,7 @@ subroutine prdisc
  enddo
 
  return
- end subroutine prdisc
+end subroutine prdisc
 
 !
 ! Prints output file

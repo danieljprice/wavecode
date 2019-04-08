@@ -2,11 +2,11 @@ module utils_setupfile
  use waveutils, only:n,rin,rout,honr,alphaSS,mode,p_index,q_index
  use waveutils, only:use_ext_sigma_profile,use_pn,spin,theta
 
-implicit none
+ implicit none
 
-private
+ private
 
-public :: runtime_parameters
+ public :: runtime_parameters
 
 contains
 !
