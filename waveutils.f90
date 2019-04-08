@@ -21,5 +21,7 @@ module waveutils
  real    :: rin,rout,alphaSS  ! grid
  real    :: honr  ! const
  character(len=20) :: mode
+ real :: p_index
+ real :: q_index
 
 end module waveutils

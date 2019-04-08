@@ -23,6 +23,7 @@
 program wave
  use waveutils,       only:alphaSS,ctime,dt,etazero,zetazero,honr,mode,n,nfile,nstep
  use waveutils,       only:rin,rout,rstep,time,use_ext_sigma_profile,wstep,zi
+ use waveutils,       only:use_ext_sigma_profile,p_index,q_index
  use binary,          only:set_binary,get_binary
  use blackhole,       only:set_bh,get_bh
  use utils_setupfile, only:runtime_parameters
@@ -32,6 +33,22 @@ implicit none
  real     :: toutfile,tcheckout
  real     :: t1,t2,omegazero
  integer  :: jcount,jprint
+ logical  :: iexist
+ character(len=100) :: fname
+
+!-- If file is passed as command argument, read sigma (& more) from it
+ use_ext_sigma_profile = .false.
+ if (command_argument_count()>0) then
+    call get_command_argument(1,fname)
+    inquire(file=fname,exist=iexist)
+    if (iexist) then
+       write(*,*) 'Using the sigma profile from: ',trim(fname)
+    else
+       write(*,*) "ERROR: The file '",trim(fname),"' does not exist"
+       stop
+    endif
+    use_ext_sigma_profile = .true.
+ endif
 
  zi=(0.0,1.) !  define the constant zi sqrt(-1)
 
@@ -42,6 +59,8 @@ implicit none
  honr    = 0.05 !030   ! define H/R at R=1
  alphaSS = 0.02        ! define the dissipation coefficient
  mode    = 'blackhole' ! define the sizes of non-Keplerian terms at Rin
+ p_index = 1.5
+ q_index = 0.75
 
  call runtime_parameters()
 
@@ -192,39 +211,24 @@ end subroutine makegrid
 subroutine makedisc
  use waveutils, only:n,r,r32,honr,csq,omega,eta,zeta,etazero,zetazero,rho
  use waveutils, only:sigma,scale_height,use_ext_sigma_profile,alpha,alphaSS
- use waveutils, only:mode
+ use waveutils, only:mode,p_index,q_index
  use blackhole, only:get_bh
  use binary,    only:get_binary
  implicit none
  integer :: i,ierr,nlines,j
  integer, parameter :: isigma = 10
- real, parameter :: p_index = 1.5
- real, parameter :: q_index = 0.75
  real :: gradient, sigma_tolerance
  real, dimension(:), allocatable :: ext_sigma,ext_radius,ext_honh
- logical :: iexist,found_r
+ logical :: found_r
  real :: alphaAV
  character(len=100) :: fname
 
-
  sigma_tolerance = 1.e-14
- use_ext_sigma_profile = .false.
  nlines = 0
-
- if (command_argument_count()>0) then
-    call get_command_argument(1,fname)
-    inquire(file=fname,exist=iexist)
-    if (iexist) then
-       write(*,'(/a,a)') 'Using the sigma profile from: ',trim(fname)
-    else
-       write(*,'(/a,a,a)') "ERROR: The file '",trim(fname),"' does not exist"
-       stop
-    endif
-    use_ext_sigma_profile = .true.
- endif
 
  ! If a sigma profile is provided, read it in
   if (use_ext_sigma_profile) then
+    call get_command_argument(1,fname)
     open(unit=isigma,file=fname,status='old',form='formatted',iostat=ierr)
     if (ierr/=0) STOP 'Could not open file!'
 

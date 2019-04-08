@@ -1,5 +1,6 @@
 module utils_setupfile
- use waveutils, only:n,rin,rout,honr,alphaSS,mode
+ use waveutils, only:n,rin,rout,honr,alphaSS,mode,p_index,q_index
+ use waveutils, only:use_ext_sigma_profile
 
 implicit none
 
@@ -23,8 +24,14 @@ subroutine write_setupfile(filename)
  call write_inopt(rin    ,'rin'    ,'inner edge'                        ,iunit)
  call write_inopt(rout   ,'rout'   ,'outer edge'                        ,iunit)
  call write_inopt(honr   ,'honr'   ,'scale height H/R of disc (at R=1)' ,iunit)
- call write_inopt(alphaSS,'alphaSS','dissipation parameter'             ,iunit)
  call write_inopt(mode   ,'mode'   ,'blackhole, binary, or binar-alpha0',iunit)
+
+ if (.not.use_ext_sigma_profile) then
+    call write_inopt(alphaSS,'alphaSS','dissipation parameter'                     ,iunit)
+    call write_inopt(p_index,'p_index','power law index of surface density profile', iunit)
+    call write_inopt(q_index,'q_index','power law index of sound speed profile'    , iunit)
+ endif
+
  close(iunit)
 
 end subroutine write_setupfile
@@ -45,8 +52,14 @@ subroutine read_setupfile(filename,ierr)
  call read_inopt(rin    ,'rin'    ,db,min=0.,errcount=nerr)
  call read_inopt(rout   ,'rout'   ,db,min=0.,errcount=nerr)
  call read_inopt(honr   ,'honr'   ,db,min=0.,errcount=nerr)
- call read_inopt(alphaSS,'alphaSS',db,min=0.,errcount=nerr)
  call read_inopt(mode   ,'mode'   ,db,errcount=nerr)
+
+ if (.not.use_ext_sigma_profile) then
+    call read_inopt(alphaSS,'alphaSS',db,min=0.,errcount=nerr)
+    call read_inopt(p_index,'p_index',db,errcount=nerr)
+    call read_inopt(q_index,'q_index',db,errcount=nerr)
+ endif
+
  call close_db(db)
  if (nerr > 0) then
     print "(1x,i2,a)",nerr,' error(s) during read of setup file: re-writing...'
