@@ -29,7 +29,7 @@ program wave
  use output,          only:write_output_file,print_tstep
  use step,            only:update,tstep
  use setup,           only:makegrid,makedisc,do_setup
- use utils_setupfile, only:runtime_parameters
+ use readwrite_infile,only:runtime_parameters
 
  implicit none
  real     :: tcheck,tprint,tstop

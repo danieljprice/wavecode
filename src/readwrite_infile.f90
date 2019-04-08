@@ -1,4 +1,4 @@
-module utils_setupfile
+module readwrite_infile
  use waveutils, only:n,rin,rout,honr,alphaSS,mode,p_index,q_index
  use waveutils, only:use_ext_sigma_profile,use_pn,spin,theta
 
@@ -101,4 +101,4 @@ subroutine runtime_parameters()
 
 end subroutine runtime_parameters
 
-end module utils_setupfile
+end module readwrite_infile
