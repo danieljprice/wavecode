@@ -411,7 +411,7 @@ end subroutine tstep
 !--main bit: evolution of the equations through one timestep
 !
 subroutine update
- use waveutils
+ use waveutils, only:n,dt,zi,zd1,zd2,za1,za2,omega,alpha,zeta,dr,eta,r12,rsq,rho,csq
  implicit none
  integer :: i
 !
