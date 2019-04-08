@@ -21,36 +21,30 @@
 !  MAIN CODE
 !----------------
 program wave
- use waveutils
- use binary,    only:set_binary,get_binary
- use blackhole, only:set_bh,get_bh
- implicit none
+ use waveutils,       only:alphaSS,ctime,dt,etazero,zetazero,honr,mode,n,nfile,nstep
+ use waveutils,       only:rin,rout,rstep,time,use_ext_sigma_profile,wstep,zi
+ use binary,          only:set_binary,get_binary
+ use blackhole,       only:set_bh,get_bh
+ use utils_setupfile, only:runtime_parameters
+
+implicit none
  real     :: tcheck,tprint,tstop
  real     :: toutfile,tcheckout
  real     :: t1,t2,omegazero
- integer    :: jcount,jprint
-!
-!  define the constant zi sqrt(-1)
-!
- zi=(0.0,1.)
-!
-!  set up grid, extending from rin to rout using n gridpoints
-!
- n=300
- rin=10.
- rout=40. !35.
-!
-!   define H/R at R=1
-!
- honr=0.05 !030
-!
-! define the dissipation coefficient
-!
- alphaSS=0.02
-!
-! define the sizes of non-Keplerian terms at Rin
-!
- mode = 'blackhole'
+ integer  :: jcount,jprint
+
+ zi=(0.0,1.) !  define the constant zi sqrt(-1)
+
+!-- Default runtime parameters
+ n       = 300         !  set up grid, extending from rin to rout using n gridpoints
+ rin     = 10.
+ rout    = 40.  !35.
+ honr    = 0.05 !030   ! define H/R at R=1
+ alphaSS = 0.02        ! define the dissipation coefficient
+ mode    = 'blackhole' ! define the sizes of non-Keplerian terms at Rin
+
+ call runtime_parameters()
+
  select case(mode)
  case('blackhole')
     call set_bh(spin=0.9,rsch=0.5) ! Schwarzschild Radius: Rin = 2Rs
@@ -75,9 +69,8 @@ program wave
     write(6,"(1x, 'H/R, eta0, zeta0, alpha ', 4(es12.4))") honr, etazero, zetazero, alphaSS
  endif
  write(6,"(1x, 'have set zi = ', 2(es12.4))") zi
-!
+
 ! define the position of the initial step in tiltangle
-!
  rstep=20.
  wstep=2.
 
@@ -87,9 +80,8 @@ program wave
  call makegrid  ! set up the radial grid
  call makedisc  ! set up the disc
  call setup     ! set up the initial conditions
-!
+
 ! set up the run parameters
-!
  jprint=10000000
  jcount=0
  nstep=0
