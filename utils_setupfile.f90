@@ -1,6 +1,6 @@
 module utils_setupfile
  use waveutils, only:n,rin,rout,honr,alphaSS,mode,p_index,q_index
- use waveutils, only:use_ext_sigma_profile
+ use waveutils, only:use_ext_sigma_profile,use_pn,spin
 
 implicit none
 
@@ -25,6 +25,11 @@ subroutine write_setupfile(filename)
  call write_inopt(rout   ,'rout'   ,'outer edge'                        ,iunit)
  call write_inopt(honr   ,'honr'   ,'scale height H/R of disc (at R=1)' ,iunit)
  call write_inopt(mode   ,'mode'   ,'blackhole, binary, or binar-alpha0',iunit)
+
+ if (trim(mode)=='blackhole') then
+    call write_inopt(use_pn,'use_pn_freqs','use post-Newtonian frequencies (logical)',iunit)
+    call write_inopt(spin  ,'spin'        ,'spin parameter of black hole |a|<1'      , iunit)
+ endif
 
  if (.not.use_ext_sigma_profile) then
     call write_inopt(alphaSS,'alphaSS','dissipation parameter'                     ,iunit)
@@ -53,6 +58,11 @@ subroutine read_setupfile(filename,ierr)
  call read_inopt(rout   ,'rout'   ,db,min=0.,errcount=nerr)
  call read_inopt(honr   ,'honr'   ,db,min=0.,errcount=nerr)
  call read_inopt(mode   ,'mode'   ,db,errcount=nerr)
+
+ if (trim(mode)=='blackhole') then
+    call read_inopt(use_pn,'use_pn_freqs',db,errcount=nerr)
+    call read_inopt(spin  ,'spin'        ,db,min=-1.,max=1.,errcount=nerr)
+ endif
 
  if (.not.use_ext_sigma_profile) then
     call read_inopt(alphaSS,'alphaSS',db,min=0.,errcount=nerr)

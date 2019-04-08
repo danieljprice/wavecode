@@ -23,7 +23,7 @@
 program wave
  use waveutils,       only:alphaSS,ctime,dt,etazero,zetazero,honr,mode,n,nfile,nstep
  use waveutils,       only:rin,rout,rstep,time,use_ext_sigma_profile,wstep,zi
- use waveutils,       only:use_ext_sigma_profile,p_index,q_index
+ use waveutils,       only:use_ext_sigma_profile,p_index,q_index,use_pn,spin
  use binary,          only:set_binary,get_binary
  use blackhole,       only:set_bh,get_bh
  use utils_setupfile, only:runtime_parameters
@@ -57,17 +57,23 @@ implicit none
  rin     = 10.
  rout    = 40.  !35.
  honr    = 0.05 !030   ! define H/R at R=1
- alphaSS = 0.02        ! define the dissipation coefficient
  mode    = 'blackhole' ! define the sizes of non-Keplerian terms at Rin
+
+!--- Only used if mode=='blackhole'
+ use_pn  = .false.
+ spin    = 0.9
+
+!--- Only used if .not.use_ext_sigma_profile
  p_index = 1.5
  q_index = 0.75
+ alphaSS = 0.02        ! define the dissipation coefficient
 
  call runtime_parameters()
 
  select case(mode)
  case('blackhole')
-    call set_bh(spin=0.9,rsch=0.5) ! Schwarzschild Radius: Rin = 2Rs
-    call get_bh(rin,etazero,zetazero)
+    call set_bh(spin=spin,rsch=0.5) ! Schwarzschild Radius: Rin = 2Rs
+    call get_bh(rin,etazero,zetazero,use_pn)
  case('binary')
     call set_binary(mass1=0.5,mass2=0.5,r1=0.25*rin,r2=0.25*rin)
     call get_binary(rin,etazero,zetazero,omegazero)
@@ -211,7 +217,7 @@ end subroutine makegrid
 subroutine makedisc
  use waveutils, only:n,r,r32,honr,csq,omega,eta,zeta,etazero,zetazero,rho
  use waveutils, only:sigma,scale_height,use_ext_sigma_profile,alpha,alphaSS
- use waveutils, only:mode,p_index,q_index
+ use waveutils, only:mode,p_index,q_index,use_pn
  use blackhole, only:get_bh
  use binary,    only:get_binary
  implicit none
@@ -294,7 +300,7 @@ subroutine makedisc
 
     select case(trim(mode))
     case('blackhole')
-       call get_bh(r(i),eta(i),zeta(i))
+       call get_bh(r(i),eta(i),zeta(i),use_pn)
     case('binary')
        call get_binary(r(i),eta(i),zeta(i),omega(i))
 !       print*,' got BINARY',eta(i),zeta(i)

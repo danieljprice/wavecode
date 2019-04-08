@@ -17,11 +17,12 @@ module waveutils
  logical :: use_ext_sigma_profile
 
  !--Runtime parameters
+ character(len=20) :: mode
  integer :: n
  real    :: rin,rout,alphaSS  ! grid
  real    :: honr  ! const
- character(len=20) :: mode
- real :: p_index
- real :: q_index
+ real    :: p_index,q_index
+ logical :: use_pn
+ real    :: spin
 
 end module waveutils

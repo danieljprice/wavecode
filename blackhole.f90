@@ -17,15 +17,13 @@ contains
 
  end subroutine set_bh
 
- subroutine get_bh(r,eta,zeta)
+ subroutine get_bh(r,eta,zeta,use_pn)
   real, intent(in)  :: r
   real, intent(out) :: eta,zeta
+  logical, intent(in) :: use_pn ! Set to true to use the PN frequencies rather than the GR
   real :: term
-  logical :: use_pn
 
   if (.not. bhset) stop 'error: black hole not set'
-
-  use_pn = .true.   ! Set to true to use the PN frequencies rather than the GR
   term = 0.
 
   if (.not.use_pn) then
