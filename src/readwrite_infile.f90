@@ -84,7 +84,7 @@ end subroutine read_setupfile
 
 !-- Read runtime parameters from setup file
 subroutine runtime_parameters()
- character(*), parameter :: filename = 'setup.file'
+ character(*), parameter :: filename = 'setup.in'
  logical :: iexist
  integer :: ierr
 
@@ -95,9 +95,6 @@ subroutine runtime_parameters()
     print*,' Edit '//trim(filename)//' and rerun wavecode'
     stop
  endif
-
- call execute_command_line('cat setup.file')
- print*
 
 end subroutine runtime_parameters
 
