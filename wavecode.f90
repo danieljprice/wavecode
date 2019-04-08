@@ -107,7 +107,7 @@ program wave
 
  call makegrid  ! set up the radial grid
  call makedisc  ! set up the disc
- call setup     ! set up the initial conditions
+ call do_setup  ! set up the initial conditions
 
 ! set up the run parameters
  jprint = 10000000
@@ -323,7 +323,7 @@ end subroutine makedisc
 !   za1 and za2 correspond to A; zd1 and zd2 correspond to D
 !   1 and 2 correspond to different levels of the Leapfrog.
 !
-subroutine setup
+subroutine do_setup
  use waveutils, only:n,r,pi,za1,za2,zd1,zd2,rstep,wstep,rsq,theta
  implicit none
  integer :: i
@@ -352,4 +352,4 @@ subroutine setup
  enddo
 
  return
-end subroutine setup
+end subroutine do_setup
