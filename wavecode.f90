@@ -233,7 +233,7 @@ subroutine makedisc
 
  ! If a sigma profile is provided, read it in
   if (use_ext_sigma_profile) then
-    open(unit=isigma,file='sigma_profile.txt',status='old',form='formatted',iostat=ierr)
+    open(unit=isigma,file=fname,status='old',form='formatted',iostat=ierr)
     if (ierr/=0) STOP 'Could not open file!'
 
     write(*,'(a)') 'Please enter alphaAV used in the simulation: '
@@ -249,7 +249,7 @@ subroutine makedisc
 
     ! Now save the profile
     allocate(ext_sigma(nlines),ext_radius(nlines),ext_honh(nlines))
-    open(unit=isigma,file='sigma_profile.txt',status='old',form='formatted',iostat=ierr)
+    open(unit=isigma,file=fname,status='old',form='formatted',iostat=ierr)
     read(isigma,*)
     read(isigma,*)
     do i = 1,nlines
