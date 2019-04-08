@@ -23,7 +23,7 @@
 program wave
  use waveutils,       only:alphaSS,ctime,dt,etazero,zetazero,honr,mode,n,nfile,nstep
  use waveutils,       only:rin,rout,rstep,time,use_ext_sigma_profile,wstep,zi
- use waveutils,       only:use_ext_sigma_profile,p_index,q_index,use_pn,spin
+ use waveutils,       only:use_ext_sigma_profile,p_index,q_index,use_pn,spin,theta
  use binary,          only:set_binary,get_binary
  use blackhole,       only:set_bh,get_bh
  use utils_setupfile, only:runtime_parameters
@@ -57,6 +57,7 @@ implicit none
  rin     = 10.
  rout    = 40.  !35.
  honr    = 0.05 !030   ! define H/R at R=1
+ theta   = 3.          ! tile angle (degrees)
  mode    = 'blackhole' ! define the sizes of non-Keplerian terms at Rin
 
 !--- Only used if mode=='blackhole'
@@ -321,7 +322,7 @@ end subroutine makedisc
 !   1 and 2 correspond to different levels of the Leapfrog.
 !
 subroutine setup
- use waveutils, only:n,r,pi,za1,za2,zd1,zd2,rstep,wstep,rsq
+ use waveutils, only:n,r,pi,za1,za2,zd1,zd2,rstep,wstep,rsq,theta
  implicit none
  integer :: i
  real  :: radius,tilt
@@ -335,14 +336,14 @@ subroutine setup
 
  do i=1,n
     radius=r(2*i+1)
-    if(radius.lt.rstep-wstep) then
-       tilt=0.
-    elseif(radius.gt.rstep+wstep) then
-       tilt=1.
-    else
-       tilt=0.5*(1.+sin(pi*(radius-rstep)/2./wstep))
-    endif
-    tilt = sin(3.*pi/180.)
+    ! if(radius.lt.rstep-wstep) then
+    !    tilt=0.
+    ! elseif(radius.gt.rstep+wstep) then
+    !    tilt=1.
+    ! else
+    !    tilt=0.5*(1.+sin(pi*(radius-rstep)/2./wstep))
+    ! endif
+    tilt = sin(theta*pi/180.)
 
     zd1(i)=cmplx(tilt/rsq(2*i+1),0.)
     zd2(i)=cmplx(tilt/rsq(2*i+1),0.)

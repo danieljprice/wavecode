@@ -24,5 +24,6 @@ module waveutils
  real    :: p_index,q_index
  logical :: use_pn
  real    :: spin
+ real    :: theta
 
 end module waveutils
