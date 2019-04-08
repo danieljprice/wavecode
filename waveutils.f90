@@ -1,16 +1,15 @@
 module waveutils
  implicit none
  integer, parameter :: maxgrid = 4004
- complex, dimension(maxgrid) :: za1,za2,zd1,zd2  ! zvbles
- complex                     :: zi               ! zvbles
- real, dimension(2*maxgrid) :: r,dr,rsq,r12,r32 ! grid
- real, dimension(2*maxgrid) :: sigma,scale_height          ! more grid
- real, dimension(2*maxgrid) :: omega,rho,csq    ! disc
- real, dimension(2*maxgrid) :: eta, zeta        ! precess
- real  :: rin,rout           ! grid
- real  :: alpha           ! diss
- real  :: rstep,wstep     ! ics
- real  :: time,dt,ctime   ! tempus
+ complex, dimension(maxgrid) :: za1,za2,zd1,zd2       ! zvbles
+ complex                     :: zi                    ! zvbles
+ real, dimension(2*maxgrid) :: r,dr,rsq,r12,r32       ! grid
+ real, dimension(2*maxgrid) :: sigma,scale_height     ! more grid
+ real, dimension(2*maxgrid) :: omega,rho,csq,alpha    ! disc
+ real, dimension(2*maxgrid) :: eta, zeta              ! precess
+ real  :: rin,rout,alphaSS  ! grid
+ real  :: rstep,wstep       ! ics
+ real  :: time,dt,ctime     ! tempus
  integer :: nstep,nfile     ! tempus
  integer :: n
  real, parameter :: pi = 4.*atan(1.)

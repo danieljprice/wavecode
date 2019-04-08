@@ -46,7 +46,7 @@ program wave
 !
 ! define the dissipation coefficient
 !
- alpha=0.02
+ alphaSS=0.02
 !
 ! define the sizes of non-Keplerian terms at Rin
 !
@@ -61,7 +61,7 @@ program wave
  case('binary-alpha0')
     call set_binary(mass1=0.5,mass2=0.5,r1=0.5*rin,r2=0.5*rin)
     call get_binary(rin,etazero,zetazero,omegazero)
-    alpha = 0.2
+    alphaSS = 0.2
     mode = 'binary'
  case default
     zetazero=0.
@@ -69,7 +69,11 @@ program wave
  end select
  print*,' ETAZERO = ',etazero,' ZETAZERO = ',zetazero,' OMEGAZERO = ',omegazero
 
- write(6,"(1x, 'H/R, eta0, zeta0, alpha ', 4(es12.4))") honr, etazero, zetazero, alpha
+ if (use_ext_sigma_profile) then
+    write(6,"(1x, 'H/R, eta0, zeta0, alpha ', 3(es12.4))") honr, etazero, zetazero
+ else
+    write(6,"(1x, 'H/R, eta0, zeta0, alpha ', 4(es12.4))") honr, etazero, zetazero, alphaSS
+ endif
  write(6,"(1x, 'have set zi = ', 2(es12.4))") zi
 !
 ! define the position of the initial step in tiltangle
@@ -195,7 +199,7 @@ end subroutine makegrid
 !
 subroutine makedisc
  use waveutils, only:n,r,r32,honr,csq,omega,eta,zeta,etazero,zetazero,rho
- use waveutils, only:sigma,scale_height,use_ext_sigma_profile
+ use waveutils, only:sigma,scale_height,use_ext_sigma_profile,alpha,alphaSS
  use waveutils, only:mode
  use blackhole, only:get_bh
  use binary,    only:get_binary
@@ -205,8 +209,9 @@ subroutine makedisc
  real, parameter :: p_index = 1.5
  real, parameter :: q_index = 0.75
  real :: gradient, sigma_tolerance
- real, dimension(:), allocatable :: ext_sigma,ext_radius
+ real, dimension(:), allocatable :: ext_sigma,ext_radius,ext_honh
  logical :: iexist,found_r
+ real :: alphaAV
 
 
  sigma_tolerance = 1.e-14
@@ -220,6 +225,8 @@ subroutine makedisc
 
  ! If a sigma profile is provided, read it in
   if (use_ext_sigma_profile) then
+    print*,'Please enter alphaAV: '
+    read*,alphaAV
     open(unit=isigma,file='sigma_profile.txt',status='old',form='formatted',iostat=ierr)
     ! Work out how long the file is
     do while (ierr == 0)
@@ -230,12 +237,12 @@ subroutine makedisc
     close(unit=isigma)
 
     ! Now save the profile
-    allocate(ext_sigma(nlines),ext_radius(nlines))
+    allocate(ext_sigma(nlines),ext_radius(nlines),ext_honh(nlines))
     open(unit=isigma,file='sigma_profile.txt',status='old',form='formatted',iostat=ierr)
     read(isigma,*)
     read(isigma,*)
     do i = 1,nlines
-      read(isigma,*) ext_radius(i),ext_sigma(i)
+      read(isigma,*) ext_radius(i),ext_sigma(i),ext_honh(i)
     enddo
     close(unit=isigma)
     ext_radius = 0.25*ext_radius ! This is because of the scaling
@@ -261,8 +268,11 @@ subroutine makedisc
       gradient = (ext_sigma(j+1) - ext_sigma(j))/(ext_radius(j+1) - ext_radius(j))
       sigma(i) = ext_sigma(j) + (r(i) - ext_radius(j))*gradient
       if (abs(sigma(i)) < sigma_tolerance) sigma(i) = sigma_tolerance
+      gradient = (ext_honh(j+1) - ext_honh(j))/(ext_radius(j+1) - ext_radius(j))
+      alpha(i) = 1./10. * alphaAV * (ext_honh(j) + (r(i) - ext_radius(j))*gradient)
     else
       sigma(i)=r(i)**(-p_index) !*(1. - sqrt(1./r(i)))
+      alpha(i)=alphaSS
     endif
     scale_height(i) = honr*r(i)**(-2*q_index + 3)
     rho(i) = sigma(i)*scale_height(i)
@@ -410,7 +420,7 @@ subroutine update
  do i=2,n
     za1(i)=za1(i) -dt*.5/rsq(2*i)*(rsq(2*i+1)*zd2(i)-rsq(2*i-1)*zd2(i-1))/dr(2*i) &
                   +dt*zi*eta(2*i)*omega(2*i)*za2(i) &
-                  -dt*alpha*omega(2*i)*za1(i)
+                  -dt*alpha(2*i)*omega(2*i)*za1(i)
  enddo
 !
 ! then we update zd2, which is at the half-gridpoints
@@ -433,7 +443,7 @@ subroutine update
  do i=2,n
     za2(i)=za2(i) - dt*.5/rsq(2*i)*(rsq(2*i+1)*zd1(i)-rsq(2*i-1)*zd1(i-1))/dr(2*i) &
                   + dt*zi*eta(2*i)*omega(2*i)*za1(i) &
-                  - dt*alpha*omega(2*i)*za2(i)
+                  - dt*alpha(2*i)*omega(2*i)*za2(i)
  enddo
 
  return
@@ -483,7 +493,7 @@ subroutine prdisc
 !
 subroutine write_output_file
  use waveutils, only:n,rsq,zd1,zi,r,nstep
- use waveutils, only:time,nfile,mode,sigma,use_ext_sigma_profile
+ use waveutils, only:time,nfile,mode,sigma,alpha
  implicit none
  integer    :: i
  complex :: ztilt
@@ -500,6 +510,9 @@ subroutine write_output_file
  else
     write(24,*) time,nstep
  endif
+
+ write(24,'(a)') '#  radius  sigma  ztilt  tilt  phase  alpha'
+
  do i=1,n+1
     ztilt=zd1(i)*rsq(2*i+1)
 
@@ -509,13 +522,9 @@ subroutine write_output_file
     phase=atan2(xitilt,rtilt)
 
     if (trim(mode)=='blackhole') then
-       if (use_ext_sigma_profile) then
-         write(24,"(7(es18.10,1X))") 4.*r(2*i), sigma(2*i), real(ztilt), tilt, phase, tilt, tilt
-       else
-         write(24,"(7(es18.10,1X))") 4.*r(2*i), 0.0, real(ztilt), tilt, phase, tilt, tilt
-       endif
+       write(24,"(6(es18.10,1X))") 4.*r(2*i), sigma(2*i), real(ztilt), tilt, phase, alpha(2*i)
     else
-       write(24,"(1x,7F12.4)") r(2*i), ztilt, tilt, phase, tilt, tilt
+       write(24,"(1x,5F12.4)") r(2*i), ztilt, tilt, phase
     endif
  enddo
  close(unit=24)
