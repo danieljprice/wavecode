@@ -212,22 +212,33 @@ subroutine makedisc
  real, dimension(:), allocatable :: ext_sigma,ext_radius,ext_honh
  logical :: iexist,found_r
  real :: alphaAV
+ character(len=100) :: fname
 
 
  sigma_tolerance = 1.e-14
  use_ext_sigma_profile = .false.
  nlines = 0
- inquire(file='sigma_profile.txt',exist=iexist)
- if (iexist) then
-   use_ext_sigma_profile = .true.
-   print*,'Using the provided sigma profile'
+
+ if (command_argument_count()>0) then
+    call get_command_argument(1,fname)
+    inquire(file=fname,exist=iexist)
+    if (iexist) then
+       write(*,'(/a,a)') 'Using the sigma profile from: ',trim(fname)
+    else
+       write(*,'(/a,a,a)') "ERROR: The file '",trim(fname),"' does not exist"
+       stop
+    endif
+    use_ext_sigma_profile = .true.
  endif
 
  ! If a sigma profile is provided, read it in
   if (use_ext_sigma_profile) then
-    print*,'Please enter alphaAV: '
-    read*,alphaAV
     open(unit=isigma,file='sigma_profile.txt',status='old',form='formatted',iostat=ierr)
+    if (ierr/=0) STOP 'Could not open file!'
+
+    write(*,'(a)') 'Please enter alphaAV used in the simulation: '
+    read(*,*) alphaAV
+
     ! Work out how long the file is
     do while (ierr == 0)
       read(isigma,*,iostat=ierr)
