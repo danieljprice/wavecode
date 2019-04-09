@@ -84,7 +84,6 @@ program wave
  case('binary-alpha0')
     call set_binary(mass1=0.5,mass2=0.5,r1=0.5*rin,r2=0.5*rin)
     call get_binary(rin,etazero,zetazero,omegazero)
-    alphaSS = 0.2
     mode    = 'binary'
  case default
     zetazero = 0.

@@ -87,10 +87,30 @@ subroutine runtime_parameters()
  character(*), parameter :: filename = 'setup.in'
  logical :: iexist
  integer :: ierr
+ integer :: imode
 
  inquire(file=filename,exist=iexist)
  if (iexist) call read_setupfile(filename,ierr)
  if (.not. iexist .or. ierr /= 0) then
+
+    print*,'Please pick a mode:'
+    print*,' 1 = blackhole'
+    print*,' 2 = binary'
+    print*,' 3 = binary-alpha0'
+    read*,imode
+
+    select case(imode)
+    case(1)
+       mode = 'blackhole'
+    case(2)
+       mode = 'binary'
+    case(3)
+       mode = 'binary-alpha0'
+       alphaSS = 0.2
+    case default
+       stop 'ERROR: Bad choice of imode'
+    end select
+
     call write_setupfile(filename)
     print*,' Edit '//trim(filename)//' and rerun wavecode'
     stop
