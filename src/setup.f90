@@ -1,38 +1,36 @@
 module setup
  implicit none
 contains
- !
- ! Subroutine to set up the grid points in r
- !
+!
+! Subroutine to set up the grid points in r
+!
 subroutine makegrid
  use waveutils, only:n,r,rin,rout,n,dr,rsq,r12,r32
- implicit none
  integer :: i
- real  :: factor,rinsav
+ real    :: factor,rinsav
 
- rinsav = rin
- rin = 1.
+ rinsav   = rin
+ rin      = 1.
 
- r(2)=rin
- r(2*n+2)=rout
-
- factor=(rout/rin)**(1./float(2*n))
+ r(2)     = rin
+ r(2*n+2) = rout
+ factor   = (rout/rin)**(1./float(2*n))
 
  do i=3,2*n+1
-    r(i)=rin*factor**(i-2)
+    r(i) = rin*factor**(i-2)
  enddo
 
  do i=3,2*n+1
-    dr(i)=r(i+1)-r(i-1)
+    dr(i) = r(i+1)-r(i-1)
  enddo
 
- dr(2)=dr(3)
- dr(2*n+2)=dr(2*n+1)
+ dr(2)     = dr(3)
+ dr(2*n+2) = dr(2*n+1)
 
  do i=2,2*n+2
-    rsq(i)=r(i)*r(i)
-    r12(i)=sqrt(r(i))
-    r32(i)=r(i)*r12(i)
+    rsq(i) = r(i)*r(i)
+    r12(i) = sqrt(r(i))
+    r32(i) = r(i)*r12(i)
  enddo
 
  rin = rinsav
@@ -50,19 +48,18 @@ subroutine makedisc
  use waveutils, only:mode,p_index,q_index,use_pn
  use blackhole, only:get_bh
  use binary,    only:get_binary
- implicit none
- integer :: i,ierr,nlines,j
  integer, parameter :: isigma = 10
- real :: gradient, sigma_tolerance
- real, dimension(:), allocatable :: ext_sigma,ext_radius,ext_honh
- logical :: found_r
- real :: alphaAV
  character(len=100) :: fname
+ real, dimension(:), allocatable :: ext_sigma,ext_radius,ext_honh
+ integer :: i,ierr,nlines,j
+ real    :: gradient,sigma_tolerance
+ logical :: found_r
+ real    :: alphaAV
 
  sigma_tolerance = 1.e-14
  nlines = 0
 
- ! If a sigma profile is provided, read it in
+! If a sigma profile is provided, read it in
  if (use_ext_sigma_profile) then
     call get_command_argument(1,fname)
     open(unit=isigma,file=fname,status='old',form='formatted',iostat=ierr)
@@ -114,8 +111,8 @@ subroutine makedisc
        gradient = (ext_honh(j+1) - ext_honh(j))/(ext_radius(j+1) - ext_radius(j))
        alpha(i) = 1./10. * alphaAV * (ext_honh(j) + (r(i) - ext_radius(j))*gradient)
     else
-       sigma(i)=r(i)**(-p_index) !*(1. - sqrt(1./r(i)))
-       alpha(i)=alphaSS
+       sigma(i) = r(i)**(-p_index) !*(1. - sqrt(1./r(i)))
+       alpha(i) = alphaSS
     endif
     scale_height(i) = honr*r(i)**(-2*q_index + 3)
     rho(i) = sigma(i)*scale_height(i)
@@ -125,8 +122,8 @@ subroutine makedisc
     !     omega is the angular velocity of the disc
     !
     !    csq(i)=((honr)**2)/r32(i)
-    csq(i)=((honr)**2)*r(i)**(-2.*q_index)
-    omega(i)=r(i)**(-1.5)
+    csq(i)   = ((honr)**2)*r(i)**(-2.*q_index)
+    omega(i) = r(i)**(-1.5)
 
     select case(trim(mode))
     case('blackhole')
@@ -136,50 +133,48 @@ subroutine makedisc
        !       print*,' got BINARY',eta(i),zeta(i)
        !       read*
     case default
-       eta(i)=etazero/r(i)
-       zeta(i)=zetazero/r32(i)
+       eta(i)  = etazero/r(i)
+       zeta(i) = zetazero/r32(i)
     end select
  enddo
 
  return
 end subroutine makedisc
 
- !
- !   this sets up the initial conditions in the disc
- !
- !   za1 and za2 correspond to A; zd1 and zd2 correspond to D
- !   1 and 2 correspond to different levels of the Leapfrog.
- !
+!
+!   this sets up the initial conditions in the disc
+!
+!   za1 and za2 correspond to A; zd1 and zd2 correspond to D
+!   1 and 2 correspond to different levels of the Leapfrog.
+!
 subroutine do_setup
  use waveutils, only:n,r,pi,za1,za2,zd1,zd2,rstep,wstep,rsq,theta
- implicit none
  integer :: i
  real  :: radius,tilt
 
  do i=1,n+1
-    za1(i)=(0.,0.)
-    za2(i)=(0.,0.)
-    zd1(i)=(0.,0.)
-    zd2(i)=(0.,0.)
+    za1(i) = (0.,0.)
+    za2(i) = (0.,0.)
+    zd1(i) = (0.,0.)
+    zd2(i) = (0.,0.)
  enddo
 
  do i=1,n
     radius=r(2*i+1)
     ! if(radius.lt.rstep-wstep) then
-    !    tilt=0.
+    !    tilt = 0.
     ! elseif(radius.gt.rstep+wstep) then
-    !    tilt=1.
+    !    tilt = 1.
     ! else
-    !    tilt=0.5*(1.+sin(pi*(radius-rstep)/2./wstep))
+    !    tilt = 0.5*(1.+sin(pi*(radius-rstep)/2./wstep))
     ! endif
-    tilt = sin(theta*pi/180.)
+    tilt   = sin(theta*pi/180.)
 
-    zd1(i)=cmplx(tilt/rsq(2*i+1),0.)
-    zd2(i)=cmplx(tilt/rsq(2*i+1),0.)
+    zd1(i) = cmplx(tilt/rsq(2*i+1),0.)
+    zd2(i) = cmplx(tilt/rsq(2*i+1),0.)
  enddo
 
  return
 end subroutine do_setup
-
 
 end module setup
