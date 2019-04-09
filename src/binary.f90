@@ -3,7 +3,7 @@
 !
 module binary
  implicit none
- real :: m1,m2,rs1,rs2
+ real    :: m1,m2,rs1,rs2
  logical :: binaryset = .false.
 
 contains

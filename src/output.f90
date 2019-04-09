@@ -8,11 +8,10 @@ contains
 subroutine write_output_file
  use waveutils, only:n,rsq,zd1,zi,r,nstep
  use waveutils, only:time,nfile,mode,sigma,alpha
- implicit none
- integer    :: i
- complex :: ztilt
- real     :: rtilt,xitilt,tilt,phase
  character(len=120) :: filename
+ integer :: i
+ complex :: ztilt
+ real    :: rtilt,xitilt,tilt,phase
 
  write(filename,"('angm',i5.5,'.exact')") nfile
  open(unit=24,file=filename,status='replace',form='formatted')
@@ -28,13 +27,11 @@ subroutine write_output_file
  write(24,'(a)') '#  radius  sigma  ztilt  tilt  phase  alpha'
 
  do i=1,n+1
-    ztilt=zd1(i)*rsq(2*i+1)
-
-    rtilt=real(ztilt)
-    xitilt=real(-zi*ztilt)
-    tilt=abs(ztilt)
-    phase=atan2(xitilt,rtilt)
-
+    ztilt  = zd1(i)*rsq(2*i+1)
+    rtilt  = real(ztilt)
+    xitilt = real(-zi*ztilt)
+    tilt   = abs(ztilt)
+    phase  = atan2(xitilt,rtilt)
     if (trim(mode)=='blackhole') then
        write(24,"(6(es18.10,1X))") 4.*r(2*i), sigma(2*i), real(ztilt), tilt, phase, alpha(2*i)
     else
@@ -53,7 +50,6 @@ end subroutine write_output_file
 !
 subroutine print_tstep
  use waveutils, only:n,r,zd1,za1,nstep,time
- implicit none
  integer :: i
 
  write(6,"('nstep= ',i8,' time= ',es12.4)") nstep, time
@@ -70,7 +66,6 @@ end subroutine print_tstep
 !
 subroutine prdisc
  use waveutils, only:n,r,dr,rho,csq,omega,eta,zeta
- implicit none
  integer :: j
 
  write(6,"(1x, 'j,  r(j),  dr(j), rho(j), csq(j)')")

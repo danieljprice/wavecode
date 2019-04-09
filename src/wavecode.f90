@@ -53,7 +53,7 @@ program wave
     use_ext_sigma_profile = .true.
  endif
 
- zi=(0.0,1.) !  define the constant zi sqrt(-1)
+ zi = (0.0,1.) !  define the constant zi sqrt(-1)
 
 !-- Default runtime parameters
  n       = 300         !  set up grid, extending from rin to rout using n gridpoints
@@ -85,10 +85,10 @@ program wave
     call set_binary(mass1=0.5,mass2=0.5,r1=0.5*rin,r2=0.5*rin)
     call get_binary(rin,etazero,zetazero,omegazero)
     alphaSS = 0.2
-    mode = 'binary'
+    mode    = 'binary'
  case default
-    zetazero=0.
-    etazero=0.
+    zetazero = 0.
+    etazero  = 0.
  end select
  print*,' ETAZERO = ',etazero,' ZETAZERO = ',zetazero,' OMEGAZERO = ',omegazero
 
@@ -100,8 +100,8 @@ program wave
  write(6,"(1x, 'have set zi = ', 2(es12.4))") zi
 
 ! define the position of the initial step in tiltangle
- rstep=20.
- wstep=2.
+ rstep = 20.
+ wstep = 2.
 
  write(6,"(1x, ' N, inner radius, outer radius', I6, 2(es12.4))") n, rin, rout
  write(6,"(1x, ' rstep   wstep  ', 2(es12.4))") rstep,wstep
@@ -140,29 +140,29 @@ program wave
  call cpu_time(t1)
 
  do while (time < tstop)
-    nstep=nstep+1
-    jcount=jcount+1
+    nstep  = nstep+1
+    jcount = jcount+1
 !
 !  update the variables
 !
-    time=time+dt
-    tcheck=tcheck+dt
-    tcheckout=tcheckout+dt
+    time      = time + dt
+    tcheck    = tcheck + dt
+    tcheckout = tcheckout + dt
 
     call update
 !
 !  print if necessary
 !
     if(jcount.ge.jprint.or.tcheck.ge.tprint) then
-       jcount=0
-       tcheck=0.
+       jcount = 0
+       tcheck = 0.
        !call print_tstep
     endif
 !
 !  write to output file if necessary
 !
     if(tcheckout.ge.toutfile) then
-       tcheckout=0.
+       tcheckout = 0.
        call write_output_file
        call cpu_time(t2)
        print "(a,f6.2)",' cpu time since last dump = ',t2 - t1
