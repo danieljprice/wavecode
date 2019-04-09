@@ -7,9 +7,11 @@ contains
 subroutine makegrid
  use waveutils, only:n,r,rin,rout,n,dr,rsq,r12,r32
  integer :: i
- real    :: factor,rinsav
+ real    :: factor,rinsav,routsav
 
  rinsav   = rin
+ routsav  = rout
+ rout     = rout/rin
  rin      = 1.
 
  r(2)     = rin
@@ -34,6 +36,7 @@ subroutine makegrid
  enddo
 
  rin = rinsav
+ rout = routsav
 
  return
 end subroutine makegrid
