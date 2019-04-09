@@ -6,7 +6,7 @@ contains
 ! Prints output file
 !
 subroutine write_output_file
- use waveutils, only:n,rsq,zd1,zi,r,nstep
+ use waveutils, only:n,rsq,zd1,zi,r,nstep,rin
  use waveutils, only:time,nfile,mode,sigma,alpha
  character(len=120) :: filename
  integer :: i
@@ -33,7 +33,7 @@ subroutine write_output_file
     tilt   = abs(ztilt)
     phase  = atan2(xitilt,rtilt)
     if (trim(mode)=='blackhole') then
-       write(24,"(6(es18.10,1X))") 4.*r(2*i), sigma(2*i), real(ztilt), tilt, phase, alpha(2*i)
+       write(24,"(6(es18.10,1X))") rin*r(2*i), sigma(2*i), real(ztilt), tilt, phase, alpha(2*i)
     else
        write(24,"(1x,5F12.4)") r(2*i), ztilt, tilt, phase
     endif
