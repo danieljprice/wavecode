@@ -76,8 +76,8 @@ program wave
 
  select case(mode)
  case('blackhole')
-    call set_bh(spin=spin,rsch=0.5) ! Schwarzschild Radius: Rin = 2Rs
-    call get_bh(rin,etazero,zetazero,use_pn)
+    call set_bh(spin=spin,rsch=2./rin)
+    call get_bh(1.,etazero,zetazero,use_pn)
  case('binary')
     call set_binary(mass1=0.5,mass2=0.5,r1=0.25*rin,r2=0.25*rin)
     call get_binary(rin,etazero,zetazero,omegazero)
