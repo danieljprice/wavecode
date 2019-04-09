@@ -101,7 +101,11 @@ subroutine makedisc
              found_r = .true.
           else
              j = j + 1
-             if (j > nlines) print*,'problem with provided sigma'
+             if (j > nlines) then
+                 print*,'ERROR: problem with provided sigma file'
+                 print*,'Could not find radial bin in file for r = ',r(i)
+                 STOP
+             endif
           endif
        enddo
        ! Interpolate between the nearest two points
