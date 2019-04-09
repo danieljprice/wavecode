@@ -21,9 +21,7 @@ subroutine write_setupfile(filename)
  open(unit=iunit,file=filename,status='replace',form='formatted')
  write(iunit,"(a)") '# Setup file for wavecode:'
  call write_inopt(n      ,'n'      ,'number of grid points'             ,iunit)
- call write_inopt(rin    ,'rin'    ,'inner edge'                        ,iunit)
- call write_inopt(rout   ,'rout'   ,'outer edge'                        ,iunit)
- call write_inopt(honr   ,'honr'   ,'scale height H/R of disc (at R=1)' ,iunit)
+ call write_inopt(honr   ,'honr'   ,'scale height H/R of disc (at Rin)' ,iunit)
  call write_inopt(theta  ,'theta'  ,'inclination of disc (degrees)'     ,iunit)
  call write_inopt(mode   ,'mode'   ,'blackhole, binary, or binar-alpha0',iunit)
 
@@ -35,6 +33,8 @@ subroutine write_setupfile(filename)
 
  if (.not.use_ext_sigma_profile) then
     write(iunit,"(/a)") '#------ Only used if not reading sigma (& more) from an external file ---------------'
+    call write_inopt(rin    ,'rin'    ,'inner edge'                        ,iunit)
+    call write_inopt(rout   ,'rout'   ,'outer edge'                        ,iunit)
     call write_inopt(alphaSS,'alphaSS','dissipation parameter'                     ,iunit)
     call write_inopt(p_index,'p_index','power law index of surface density profile',iunit)
     call write_inopt(q_index,'q_index','power law index of sound speed profile'    ,iunit)
@@ -57,8 +57,6 @@ subroutine read_setupfile(filename,ierr)
  ierr = 0
  call open_db_from_file(db,filename,iunit,ierr)
  call read_inopt(n      ,'n'      ,db,min=0 ,errcount=nerr)
- call read_inopt(rin    ,'rin'    ,db,min=0.,errcount=nerr)
- call read_inopt(rout   ,'rout'   ,db,min=0.,errcount=nerr)
  call read_inopt(honr   ,'honr'   ,db,min=0.,errcount=nerr)
  call read_inopt(theta  ,'theta'  ,db,min=0.,max=90.,errcount=nerr)
  call read_inopt(mode   ,'mode'   ,db,errcount=nerr)
@@ -69,6 +67,8 @@ subroutine read_setupfile(filename,ierr)
  endif
 
  if (.not.use_ext_sigma_profile) then
+    call read_inopt(rin    ,'rin'    ,db,min=0.,errcount=nerr)
+    call read_inopt(rout   ,'rout'   ,db,min=0.,errcount=nerr)
     call read_inopt(alphaSS,'alphaSS',db,min=0.,errcount=nerr)
     call read_inopt(p_index,'p_index',db,errcount=nerr)
     call read_inopt(q_index,'q_index',db,errcount=nerr)
@@ -84,10 +84,16 @@ end subroutine read_setupfile
 
 !-- Read runtime parameters from setup file
 subroutine runtime_parameters()
+ use setup, only:ext_radius,nlines
  character(*), parameter :: filename = 'setup.in'
  logical :: iexist
  integer :: ierr
  integer :: imode
+
+ if (use_ext_sigma_profile) then
+    rin  = ext_radius(1)
+    rout = ext_radius(nlines)
+ endif
 
  inquire(file=filename,exist=iexist)
  if (iexist) call read_setupfile(filename,ierr)

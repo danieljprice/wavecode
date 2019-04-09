@@ -1,5 +1,11 @@
 module setup
  implicit none
+
+!--- Variables when reading sigma from an external file
+ real, dimension(:), allocatable :: ext_sigma,ext_radius,ext_honh
+ real    :: alphaAV
+ integer :: nlines
+
 contains
 !
 ! Subroutine to set up the grid points in r
@@ -48,48 +54,16 @@ end subroutine makegrid
 subroutine makedisc
  use waveutils, only:n,r,r32,honr,csq,omega,eta,zeta,etazero,zetazero,rho
  use waveutils, only:sigma,scale_height,use_ext_sigma_profile,alpha,alphaSS
- use waveutils, only:mode,p_index,q_index,use_pn
+ use waveutils, only:mode,p_index,q_index,use_pn,rin
  use blackhole, only:get_bh
  use binary,    only:get_binary
- integer, parameter :: isigma = 10
- character(len=100) :: fname
- real, dimension(:), allocatable :: ext_sigma,ext_radius,ext_honh
- integer :: i,ierr,nlines,j
+ integer :: i,j
  real    :: gradient,sigma_tolerance
  logical :: found_r
- real    :: alphaAV
 
  sigma_tolerance = 1.e-14
- nlines = 0
-
-! If a sigma profile is provided, read it in
- if (use_ext_sigma_profile) then
-    call get_command_argument(1,fname)
-    open(unit=isigma,file=fname,status='old',form='formatted',iostat=ierr)
-    if (ierr/=0) STOP 'Could not open file!'
-
-    write(*,'(a)') ' Please enter alphaAV used in the simulation: '
-    read(*,*) alphaAV
-    print*
-
-    ! Work out how long the file is
-    do while (ierr == 0)
-       read(isigma,*,iostat=ierr)
-       nlines = nlines + 1
-    enddo
-    nlines = nlines - 3 ! To take account of the header
-    close(unit=isigma)
-
-    ! Now save the profile
-    allocate(ext_sigma(nlines),ext_radius(nlines),ext_honh(nlines))
-    open(unit=isigma,file=fname,status='old',form='formatted',iostat=ierr)
-    read(isigma,*)
-    read(isigma,*)
-    do i = 1,nlines
-       read(isigma,*) ext_radius(i),ext_sigma(i),ext_honh(i)
-    enddo
-    close(unit=isigma)
-    ext_radius = 0.25*ext_radius ! This is because of the scaling
+ if (use_ext_sigma_profile) then ! rescale radius by rin (which should be read from file)
+    ext_radius = ext_radius/rin
  endif
 
  do i=2,2*n+2
@@ -122,16 +96,16 @@ subroutine makedisc
        sigma(i) = r(i)**(-p_index) !*(1. - sqrt(1./r(i)))
        alpha(i) = alphaSS
     endif
-    scale_height(i) = honr*r(i)**(-2*q_index + 3)
-    rho(i) = sigma(i)*scale_height(i)
+    scale_height(i) = honr*r(i)**(-2*q_index + 3) ! ?????
+    rho(i) = sigma(i)*scale_height(i)             ! Does this get done right if sigma is read from file?
     !
     !  note that rho = Sigma H^2
     !     csq is square of the sound speed
     !     omega is the angular velocity of the disc
     !
     !    csq(i)=((honr)**2)/r32(i)
-    csq(i)   = ((honr)**2)*r(i)**(-2.*q_index)
-    omega(i) = r(i)**(-1.5)
+    csq(i)   = ((honr)**2)*r(i)**(-2.*q_index) !?????
+    omega(i) = r(i)**(-1.5)                    !?????
 
     select case(trim(mode))
     case('blackhole')
@@ -184,5 +158,41 @@ subroutine do_setup
 
  return
 end subroutine do_setup
+
+subroutine read_external_sigma
+ integer, parameter :: isigma = 10
+ character(len=100) :: fname
+ integer :: i,ierr
+
+ nlines = 0
+
+! If a sigma profile is provided, read it in
+ call get_command_argument(1,fname)
+ open(unit=isigma,file=fname,status='old',form='formatted',iostat=ierr)
+ if (ierr/=0) STOP 'Could not open file!'
+
+ write(*,'(a)') ' Please enter alphaAV used in the simulation: '
+ read(*,*) alphaAV
+ print*
+
+ ! Work out how long the file is
+ do while (ierr == 0)
+    read(isigma,*,iostat=ierr)
+    nlines = nlines + 1
+ enddo
+ nlines = nlines - 3 ! To take account of the header (2 lines) and because we added one to counter at end of file
+ close(unit=isigma)
+
+ ! Now save the profile
+ allocate(ext_sigma(nlines),ext_radius(nlines),ext_honh(nlines))
+ open(unit=isigma,file=fname,status='old',form='formatted',iostat=ierr)
+ read(isigma,*)
+ read(isigma,*)
+ do i = 1,nlines
+    read(isigma,*) ext_radius(i),ext_sigma(i),ext_honh(i)
+ enddo
+ close(unit=isigma)
+
+end subroutine read_external_sigma
 
 end module setup

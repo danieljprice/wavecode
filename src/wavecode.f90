@@ -28,7 +28,7 @@ program wave
  use blackhole,       only:set_bh,get_bh
  use output,          only:write_output_file,print_tstep
  use step,            only:update,tstep
- use setup,           only:makegrid,makedisc,do_setup
+ use setup,           only:makegrid,makedisc,do_setup,read_external_sigma
  use readwrite_infile,only:runtime_parameters
 
  implicit none
@@ -51,15 +51,14 @@ program wave
        stop
     endif
     use_ext_sigma_profile = .true.
+    call read_external_sigma
  endif
 
  zi = (0.0,1.) !  define the constant zi sqrt(-1)
 
 !-- Default runtime parameters
  n       = 300         !  set up grid, extending from rin to rout using n gridpoints
- rin     = 10.
- rout    = 40.  !35.
- honr    = 0.05 !030   ! define H/R at R=1
+ honr    = 0.05 !030   ! define H/R at Rin
  theta   = 3.          ! tile angle (degrees)
  mode    = 'blackhole' ! define the sizes of non-Keplerian terms at Rin
 
@@ -68,6 +67,8 @@ program wave
  spin    = 0.9
 
 !--- Only used if .not.use_ext_sigma_profile
+ rin     = 10.
+ rout    = 40.  !35.
  p_index = 1.5
  q_index = 0.75
  alphaSS = 0.02        ! define the dissipation coefficient
