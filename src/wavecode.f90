@@ -90,21 +90,31 @@ program wave
     zetazero = 0.
     etazero  = 0.
  end select
- print*,' ETAZERO = ',etazero,' ZETAZERO = ',zetazero,' OMEGAZERO = ',omegazero
 
- if (use_ext_sigma_profile) then
-    write(6,"(1x, 'H/R, eta0, zeta0, alpha ', 3(es12.4))") honr, etazero, zetazero
- else
-    write(6,"(1x, 'H/R, eta0, zeta0, alpha ', 4(es12.4))") honr, etazero, zetazero, alphaSS
+ print*
+ print*,'have set zi = ',zi
+ print('(/,a)'),'--- Frequencies ---------------------'
+ print*,'eta0    = ',etazero
+ print*,'zeta0   = ',zetazero
+ if (mode/='blackhole') then
+    print*,'omega0  = ',omegazero
  endif
- write(6,"(1x, 'have set zi = ', 2(es12.4))") zi
+ print('(/,a)'),'--- Disc ----------------------------'
+ print*,'H/R     = ',honr
+ if (.not.use_ext_sigma_profile) then
+    print*,'alphaSS = ',alphaSS
+ endif
 
 ! define the position of the initial step in tiltangle
  rstep = 20.
  wstep = 2.
 
- write(6,"(1x, ' N, inner radius, outer radius', I6, 2(es12.4))") n, rin, rout
- write(6,"(1x, ' rstep   wstep  ', 2(es12.4))") rstep,wstep
+ print('(/,a)'),'--- Grid ----------------------------'
+ print*,'N     = ',n
+ print*,'Rin   = ',rin
+ print*,'Rout  = ',rout
+ print*,'rstep = ',rstep
+ print*,'wstep = ',wstep
 
  call makegrid  ! set up the radial grid
  call makedisc  ! set up the disc
@@ -123,22 +133,29 @@ program wave
  toutfile  = tstop/40.
  tcheckout = 0.
  nfile     = 0
- write(6,"(1x, 'tstop toutfile ctime ', 3(es12.4))") tstop,toutfile,ctime
-!
-!   initial printout
-!
+
+ print('(/,a)'),'--- Output --------------------------'
+ print*,'tstop    = ',tstop
+ print*,'toutfile = ',toutfile
+ print*,'ctime    = ',ctime
+
+ write(*,'(/,"START:")')
+
+!--- initial printout
  !call prdisc
  !call print_tstep
  call write_output_file
-!
-!   start the main evolution loop
-!
-!   calculate timestep - linear problem so do only once
-!
+
+!--- start the main evolution loop
+
+! calculate timestep - linear problem so do only once
+ write(*,'(/,75("-"))')
+ print*,'Calculating timestep:'
  call tstep
  write(6,"(1x,'timestep dt = ', es12.4)") dt
- call cpu_time(t1)
+ write(*,'(75("-"),/)')
 
+ call cpu_time(t1)
  do while (time < tstop)
     nstep  = nstep+1
     jcount = jcount+1
@@ -165,7 +182,7 @@ program wave
        tcheckout = 0.
        call write_output_file
        call cpu_time(t2)
-       print "(a,f6.2)",' cpu time since last dump = ',t2 - t1
+       print "(a,f6.2,/)",' cpu time since last dump = ',t2 - t1
        t1 = t2
     endif
  enddo

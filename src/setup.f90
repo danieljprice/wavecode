@@ -65,8 +65,9 @@ subroutine makedisc
     open(unit=isigma,file=fname,status='old',form='formatted',iostat=ierr)
     if (ierr/=0) STOP 'Could not open file!'
 
-    write(*,'(a)') 'Please enter alphaAV used in the simulation: '
+    write(*,'(a)') ' Please enter alphaAV used in the simulation: '
     read(*,*) alphaAV
+    print*
 
     ! Work out how long the file is
     do while (ierr == 0)
