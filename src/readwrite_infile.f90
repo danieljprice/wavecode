@@ -2,6 +2,7 @@ module readwrite_infile
  use waveutils, only:n,rin,rout,honr,alphaSS,mode,p_index,q_index
  use waveutils, only:use_ext_sigma_profile,spin,theta
  use blackhole, only:ifreq
+ use setup,     only:iwarp
 
  implicit none
 
@@ -21,10 +22,15 @@ subroutine write_setupfile(filename)
  print "(a)",' writing setup options file '//trim(filename)
  open(unit=iunit,file=filename,status='replace',form='formatted')
  write(iunit,"(a)") '# Setup file for wavecode:'
- call write_inopt(n      ,'n'      ,'number of grid points'             ,iunit)
- call write_inopt(honr   ,'honr'   ,'scale height H/R of disc (at Rin)' ,iunit)
- call write_inopt(theta  ,'theta'  ,'inclination of disc (degrees)'     ,iunit)
- call write_inopt(mode   ,'mode'   ,'blackhole, binary, or binar-alpha0',iunit)
+ call write_inopt(n      ,'n'     ,'number of grid points'                  ,iunit)
+ call write_inopt(honr   ,'honr'  ,'scale height H/R of disc (at Rin)'      ,iunit)
+ call write_inopt(mode   ,'mode'  ,'blackhole, binary, or binar-alpha0'     ,iunit)
+ call write_inopt(iwarp  ,'iwarp' ,'1=constant tilt angle, 2=tilt with step',iunit)
+
+ if (iwarp==1) then
+    write(iunit,"(/a)") '#------ Only used if iwarp == 1 -----------------------------------------------------'
+    call write_inopt(theta,'theta','inclination of disc (degrees)'          ,iunit)
+ endif
 
  if (trim(mode)=='blackhole') then
     write(iunit,"(/a)") '#------ Only used if mode == blackhole ----------------------------------------------'

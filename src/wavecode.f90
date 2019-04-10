@@ -28,7 +28,7 @@ program wave
  use blackhole,       only:set_bh,get_bh,ifreq,ifreq_gr
  use output,          only:write_output_file,print_tstep
  use step,            only:update,tstep
- use setup,           only:makegrid,makedisc,do_setup,read_external_sigma,nlines,ext_radius,iwarp,iwarp_tilt
+ use setup,           only:makegrid,makedisc,do_setup,read_external_sigma,nlines,ext_radius,iwarp
  use readwrite_infile,only:runtime_parameters
 
  implicit none
@@ -60,7 +60,7 @@ program wave
  n       = 300         !  set up grid, extending from rin to rout using n gridpoints
  honr    = 0.05 !030   ! define H/R at Rin
  mode    = 'blackhole' ! define the sizes of non-Keplerian terms at Rin
- iwarp   = iwarp_tilt
+ iwarp   = 2
 
 !--- Only used if iwarp = iwarp_tilt (i.e. constant tilt angle; no step)
  theta   = 3.          ! tile angle (degrees)

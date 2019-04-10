@@ -6,9 +6,6 @@ module setup
  real    :: alphaAV
  integer :: nlines,iwarp
 
- integer, parameter :: iwarp_tilt  = 1
- integer, parameter :: iwarp_lop02 = 2
-
 contains
 !
 ! Subroutine to set up the grid points in r
@@ -146,7 +143,7 @@ subroutine do_setup
 
  do i=1,n
     select case(iwarp)
-    case(iwarp_lop02)
+    case(2)
        radius=r(2*i+1)
        if(radius < rstep-wstep) then
           tilt = 0.
@@ -155,8 +152,10 @@ subroutine do_setup
        else
           tilt = 0.5*(1.+sin(pi*(radius-rstep)/2./wstep))
        endif
-    case(iwarp_tilt)
+    case(1)
        tilt   = sin(theta*pi/180.)
+    case default
+       STOP 'Bad choice of iwarp'
     end select
     zd1(i) = cmplx(tilt/rsq(2*i+1),0.)
     zd2(i) = cmplx(tilt/rsq(2*i+1),0.)
