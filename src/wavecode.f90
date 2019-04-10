@@ -25,7 +25,7 @@ program wave
  use waveutils,       only:rin,rout,rstep,time,use_ext_sigma_profile,wstep,zi
  use waveutils,       only:use_ext_sigma_profile,p_index,q_index,spin,theta
  use binary,          only:set_binary,get_binary
- use blackhole,       only:set_bh,get_bh,ifreq
+ use blackhole,       only:set_bh,get_bh,ifreq,ifreq_gr
  use output,          only:write_output_file,print_tstep
  use step,            only:update,tstep
  use setup,           only:makegrid,makedisc,do_setup,read_external_sigma,nlines,ext_radius
@@ -62,8 +62,8 @@ program wave
  theta   = 3.          ! tile angle (degrees)
  mode    = 'blackhole' ! define the sizes of non-Keplerian terms at Rin
 
-!--- Only used if mode=='blackhole'
- ifreq   = 1
+!--- Only used if mode = 'blackhole'
+ ifreq   = ifreq_gr
  spin    = 0.9
 
 !--- Only used if .not.use_ext_sigma_profile
