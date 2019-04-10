@@ -25,7 +25,7 @@ program wave
  use waveutils,       only:rin,rout,rstep,time,use_ext_sigma_profile,wstep,zi
  use waveutils,       only:use_ext_sigma_profile,p_index,q_index,spin,theta
  use binary,          only:set_binary,get_binary
- use blackhole,       only:set_bh,get_bh,ifreq,ifreq_gr
+ use blackhole,       only:set_bh,get_bh,ifreq
  use output,          only:write_output_file,print_tstep
  use step,            only:update,tstep
  use setup,           only:makegrid,makedisc,do_setup,read_external_sigma,nlines,ext_radius,iwarp
@@ -70,7 +70,7 @@ program wave
  wstep = 2.            ! width of step (scaled by rin)
 
 !--- Only used if mode = 'blackhole'
- ifreq   = ifreq_gr
+ ifreq   = 1           ! frequencies to use (1=gr, 2=gr-approx, 3=PN)
  spin    = 0.9
 
 !--- Only used if .not.use_ext_sigma_profile

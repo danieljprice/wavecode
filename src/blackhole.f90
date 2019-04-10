@@ -7,10 +7,6 @@ module blackhole
  logical :: bhset = .false.
  integer :: ifreq
 
- integer, parameter :: ifreq_gr       = 1
- integer, parameter :: ifreq_grapprox = 2
- integer, parameter :: ifreq_pn       = 3
-
 contains
 
 subroutine set_bh(spin,rsch)
@@ -33,17 +29,17 @@ subroutine get_bh(r,eta,zeta)
  select case(ifreq)
 
  !-- GR frequencies
- case(ifreq_gr)
+ case(1)
     eta  = -1.5*rs/r + sqrt(2.)*a_spin*(rs/r)**1.5 - 3./8.*(a_spin*rs/r)**2
     zeta = -a_spin/sqrt(2.)*sqrt((rs/r)**3) + 3./8.*(a_spin*rs/r)**2
 
  !-- Approximate GR frequencies (as in LOP02)
- case(ifreq_grapprox)
+ case(2)
     eta = -1.5*rs/r
     zeta = -a_spin/sqrt(2.)*sqrt((rs/r)**3)
 
  !-- Post-Newtonian frequencies
- case(ifreq_pn)
+ case(3)
     ! In the PN case, we assume G=M=c=1. See frequencies in NPN15.
     print*,'Using the PN frequencies!'
     term = 2.*r**1.5 - 4.*a_spin
