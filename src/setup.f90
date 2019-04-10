@@ -4,7 +4,10 @@ module setup
 !--- Variables when reading sigma from an external file
  real, dimension(:), allocatable :: ext_sigma,ext_radius,ext_honh
  real    :: alphaAV
- integer :: nlines
+ integer :: nlines,iwarp
+
+ integer, parameter :: iwarp_tilt  = 1
+ integer, parameter :: iwarp_lop02 = 2
 
 contains
 !
@@ -142,16 +145,19 @@ subroutine do_setup
  enddo
 
  do i=1,n
-    radius=r(2*i+1)
-    ! if(radius.lt.rstep-wstep) then
-    !    tilt = 0.
-    ! elseif(radius.gt.rstep+wstep) then
-    !    tilt = 1.
-    ! else
-    !    tilt = 0.5*(1.+sin(pi*(radius-rstep)/2./wstep))
-    ! endif
-    tilt   = sin(theta*pi/180.)
-
+    select case(iwarp)
+    case(iwarp_lop02)
+       radius=r(2*i+1)
+       if(radius < rstep-wstep) then
+          tilt = 0.
+       elseif(radius > rstep+wstep) then
+          tilt = 1.
+       else
+          tilt = 0.5*(1.+sin(pi*(radius-rstep)/2./wstep))
+       endif
+    case(iwarp_tilt)
+       tilt   = sin(theta*pi/180.)
+    end select
     zd1(i) = cmplx(tilt/rsq(2*i+1),0.)
     zd2(i) = cmplx(tilt/rsq(2*i+1),0.)
  enddo
