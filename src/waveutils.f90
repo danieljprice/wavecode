@@ -22,7 +22,6 @@ module waveutils
  real    :: rin,rout,alphaSS  ! grid
  real    :: honr              ! const
  real    :: p_index,q_index
- logical :: use_pn
  real    :: spin
  real    :: theta
 

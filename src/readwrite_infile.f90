@@ -1,6 +1,7 @@
 module readwrite_infile
  use waveutils, only:n,rin,rout,honr,alphaSS,mode,p_index,q_index
- use waveutils, only:use_ext_sigma_profile,use_pn,spin,theta
+ use waveutils, only:use_ext_sigma_profile,spin,theta
+ use blackhole, only:ifreq
 
  implicit none
 
@@ -27,8 +28,8 @@ subroutine write_setupfile(filename)
 
  if (trim(mode)=='blackhole') then
     write(iunit,"(/a)") '#------ Only used if mode == blackhole ----------------------------------------------'
-    call write_inopt(use_pn,'use_pn_freqs','use post-Newtonian frequencies (logical)',iunit)
-    call write_inopt(spin  ,'spin'        ,'spin parameter of black hole |a|<1'      ,iunit)
+    call write_inopt(ifreq ,'ifreq','BH frequencies (1=GR, 2=GR-approx, 3=PN)',iunit)
+    call write_inopt(spin  ,'spin' ,'spin parameter of black hole |a|<1'      ,iunit)
  endif
 
  if (.not.use_ext_sigma_profile) then
@@ -62,8 +63,8 @@ subroutine read_setupfile(filename,ierr)
  call read_inopt(mode   ,'mode'   ,db,errcount=nerr)
 
  if (trim(mode)=='blackhole') then
-    call read_inopt(use_pn,'use_pn_freqs',db,errcount=nerr)
-    call read_inopt(spin  ,'spin'        ,db,min=-1.,max=1.,errcount=nerr)
+    call read_inopt(ifreq ,'ifreq',db,min=1  ,max=3 ,errcount=nerr)
+    call read_inopt(spin  ,'spin' ,db,min=-1.,max=1.,errcount=nerr)
  endif
 
  if (.not.use_ext_sigma_profile) then

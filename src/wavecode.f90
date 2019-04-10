@@ -23,9 +23,9 @@
 program wave
  use waveutils,       only:alphaSS,ctime,dt,etazero,zetazero,honr,mode,n,nfile,nstep
  use waveutils,       only:rin,rout,rstep,time,use_ext_sigma_profile,wstep,zi
- use waveutils,       only:use_ext_sigma_profile,p_index,q_index,use_pn,spin,theta
+ use waveutils,       only:use_ext_sigma_profile,p_index,q_index,spin,theta
  use binary,          only:set_binary,get_binary
- use blackhole,       only:set_bh,get_bh
+ use blackhole,       only:set_bh,get_bh,ifreq
  use output,          only:write_output_file,print_tstep
  use step,            only:update,tstep
  use setup,           only:makegrid,makedisc,do_setup,read_external_sigma,nlines,ext_radius
@@ -63,7 +63,7 @@ program wave
  mode    = 'blackhole' ! define the sizes of non-Keplerian terms at Rin
 
 !--- Only used if mode=='blackhole'
- use_pn  = .false.
+ ifreq   = 1
  spin    = 0.9
 
 !--- Only used if .not.use_ext_sigma_profile
@@ -83,7 +83,7 @@ program wave
  select case(mode)
  case('blackhole')
     call set_bh(spin=spin,rsch=2./rin)
-    call get_bh(1.,etazero,zetazero,use_pn)
+    call get_bh(1.,etazero,zetazero)
  case('binary')
     call set_binary(mass1=0.5,mass2=0.5,r1=0.25*rin,r2=0.25*rin)
     call get_binary(rin,etazero,zetazero,omegazero)

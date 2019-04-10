@@ -54,7 +54,7 @@ end subroutine makegrid
 subroutine makedisc
  use waveutils, only:n,r,r32,honr,csq,omega,eta,zeta,etazero,zetazero,rho
  use waveutils, only:sigma,scale_height,use_ext_sigma_profile,alpha,alphaSS
- use waveutils, only:mode,p_index,q_index,use_pn,rin
+ use waveutils, only:mode,p_index,q_index,rin
  use blackhole, only:get_bh
  use binary,    only:get_binary
  integer :: i,j
@@ -109,7 +109,7 @@ subroutine makedisc
 
     select case(trim(mode))
     case('blackhole')
-       call get_bh(r(i),eta(i),zeta(i),use_pn)
+       call get_bh(r(i),eta(i),zeta(i))
     case('binary')
        call get_binary(r(i),eta(i),zeta(i),omega(i))
        !       print*,' got BINARY',eta(i),zeta(i)
