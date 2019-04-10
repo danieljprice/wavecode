@@ -54,24 +54,28 @@ program wave
     call read_external_sigma
  endif
 
- zi = (0.0,1.) !  define the constant zi sqrt(-1)
+ zi = (0.0,1.)         !  define the constant zi sqrt(-1)
 
 !-- Default runtime parameters
  n       = 300         !  set up grid, extending from rin to rout using n gridpoints
- honr    = 0.05 !030   ! define H/R at Rin
+ honr    = 0.05        ! define H/R at Rin
  mode    = 'blackhole' ! define the sizes of non-Keplerian terms at Rin
  iwarp   = 2
 
-!--- Only used if iwarp = iwarp_tilt (i.e. constant tilt angle; no step)
- theta   = 3.          ! tile angle (degrees)
+!--- Only used if iwarp = 1 (i.e. constant tilt angle; no step)
+ theta   = 3.          ! tilt angle (degrees)
+
+!--- Only used if iwarp = 2 (i.e. step function tilt)
+ rstep = 20.           ! radius where step occurs (scaled by rin)
+ wstep = 2.            ! width of step (scaled by rin)
 
 !--- Only used if mode = 'blackhole'
  ifreq   = ifreq_gr
  spin    = 0.9
 
 !--- Only used if .not.use_ext_sigma_profile
- rin     = 10.
- rout    = 40.  !35.
+ rin     = 4.
+ rout    = 160.
  p_index = 1.5
  q_index = 0.75
  alphaSS = 0.02        ! define the dissipation coefficient
@@ -112,10 +116,6 @@ program wave
  if (.not.use_ext_sigma_profile) then
     print*,'alphaSS = ',alphaSS
  endif
-
-! define the position of the initial step in tiltangle
- rstep = 20.
- wstep = 2.
 
  print('(/,a)'),'--- Grid ----------------------------'
  print*,'N     = ',n

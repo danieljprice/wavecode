@@ -1,6 +1,6 @@
 module readwrite_infile
  use waveutils, only:n,rin,rout,honr,alphaSS,mode,p_index,q_index
- use waveutils, only:use_ext_sigma_profile,spin,theta
+ use waveutils, only:use_ext_sigma_profile,spin,theta,rstep,wstep
  use blackhole, only:ifreq
  use setup,     only:iwarp
 
@@ -30,6 +30,12 @@ subroutine write_setupfile(filename)
  if (iwarp==1) then
     write(iunit,"(/a)") '#------ Only used if iwarp == 1 -----------------------------------------------------'
     call write_inopt(theta,'theta','inclination of disc (degrees)'          ,iunit)
+ endif
+
+ if (iwarp==2) then
+    write(iunit,"(/a)") '#------ Only used if iwarp == 2 -----------------------------------------------------'
+    call write_inopt(rstep,'rstep','radius where step occurs (scaled by rin)',iunit)
+    call write_inopt(wstep,'wstep','width of step (scaled by rin)',iunit)
  endif
 
  if (trim(mode)=='blackhole') then
@@ -63,19 +69,10 @@ subroutine read_setupfile(filename,ierr)
  nerr = 0
  ierr = 0
  call open_db_from_file(db,filename,iunit,ierr)
- call read_inopt(n      ,'n'      ,db,min=0 ,        errcount=nerr)
- call read_inopt(honr   ,'honr'   ,db,min=0.,        errcount=nerr)
- call read_inopt(mode   ,'mode'   ,db,               errcount=nerr)
- call read_inopt(iwarp  ,'iwarp'  ,db,min=1  ,max=2 ,errcount=nerr)
-
- if (iwarp==1) then
-    call read_inopt(theta  ,'theta'  ,db,min=0.,max=90.,errcount=nerr)
- endif
-
- if (trim(mode)=='blackhole') then
-    call read_inopt(ifreq ,'ifreq',db,min=1  ,max=3 ,errcount=nerr)
-    call read_inopt(spin  ,'spin' ,db,min=-1.,max=1.,errcount=nerr)
- endif
+ call read_inopt(n       ,'n'    ,db,min=0 ,      errcount=nerr)
+ call read_inopt(honr    ,'honr' ,db,min=0.,      errcount=nerr)
+ call read_inopt(mode    ,'mode' ,db,             errcount=nerr)
+ call read_inopt(iwarp   ,'iwarp',db,min=1 ,max=2,errcount=nerr)
 
  if (.not.use_ext_sigma_profile) then
     call read_inopt(rin    ,'rin'    ,db,min=0.,errcount=nerr)
@@ -83,6 +80,20 @@ subroutine read_setupfile(filename,ierr)
     call read_inopt(alphaSS,'alphaSS',db,min=0.,errcount=nerr)
     call read_inopt(p_index,'p_index',db,       errcount=nerr)
     call read_inopt(q_index,'q_index',db,       errcount=nerr)
+ endif
+
+ if (iwarp==1) then
+    call read_inopt(theta,'theta',db,min=0.,max=90.,errcount=nerr)
+ endif
+
+ if (iwarp==2) then
+    call read_inopt(rstep ,'rstep',db,min=0.,errcount=nerr)
+    call read_inopt(wstep ,'wstep',db,min=0.,errcount=nerr)
+ endif
+
+ if (trim(mode)=='blackhole') then
+    call read_inopt(ifreq ,'ifreq',db,min=1  ,max=3 ,errcount=nerr)
+    call read_inopt(spin  ,'spin' ,db,min=-1.,max=1.,errcount=nerr)
  endif
 
  call close_db(db)
