@@ -24,7 +24,7 @@ subroutine write_output_file
     write(24,*) time,nstep
  endif
 
- write(24,'(a)') '#  radius  sigma  ztilt  tilt  phase  alpha  tilt'
+ write(24,'(a)') '#  radius  sigma  ztilt  tilt  phase  alpha  tilt  r/r_{in}'
 
  do i=1,n+1
     ztilt  = zd1(i)*rsq(2*i+1)
@@ -33,7 +33,7 @@ subroutine write_output_file
     tilt   = abs(ztilt)
     phase  = atan2(xitilt,rtilt)
     if (trim(mode)=='blackhole') then
-       write(24,"(7(es18.10,1X))") rin*r(2*i), sigma(2*i), real(ztilt), tilt, phase, alpha(2*i), tilt
+       write(24,"(8(es18.10,1X))") rin*r(2*i), sigma(2*i), rtilt, tilt, phase, alpha(2*i), tilt, r(2*i)
     else
        write(24,"(1x,5F12.4)") r(2*i), ztilt, tilt, phase
     endif
