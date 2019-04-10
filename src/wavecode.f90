@@ -23,7 +23,7 @@
 program wave
  use waveutils,       only:alphaSS,ctime,dt,etazero,zetazero,honr,mode,n,nfile,nstep
  use waveutils,       only:rin,rout,rstep,time,use_ext_sigma_profile,wstep,zi
- use waveutils,       only:use_ext_sigma_profile,p_index,q_index,spin,theta
+ use waveutils,       only:use_ext_sigma_profile,p_index,q_index,spin,theta,tstop,nout
  use binary,          only:set_binary,get_binary
  use blackhole,       only:set_bh,get_bh,ifreq
  use output,          only:write_output_file,print_tstep
@@ -32,7 +32,7 @@ program wave
  use readwrite_infile,only:runtime_parameters
 
  implicit none
- real     :: tcheck,tprint,tstop
+ real     :: tcheck,tprint
  real     :: toutfile,tcheckout
  real     :: t1,t2,omegazero
  integer  :: jcount,jprint
@@ -60,7 +60,9 @@ program wave
  n       = 300         !  set up grid, extending from rin to rout using n gridpoints
  honr    = 0.05        ! define H/R at Rin
  mode    = 'blackhole' ! define the sizes of non-Keplerian terms at Rin
- iwarp   = 2
+ iwarp   = 1
+ tstop   = 5000.
+ nout    = 40
 
 !--- Only used if iwarp = 1 (i.e. constant tilt angle; no step)
  theta   = 3.          ! tilt angle (degrees)
@@ -133,12 +135,11 @@ program wave
  jcount = 0
  nstep  = 0
  time   = 0.
- tstop  = 5000.!/8.+epsilon(0.)
  tprint = 2.*tstop
  tcheck = 0.
  ctime  = 0.03
 
- toutfile  = tstop/40.
+ toutfile  = tstop/nout
  tcheckout = 0.
  nfile     = 0
 

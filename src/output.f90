@@ -13,12 +13,12 @@ subroutine write_output_file
  complex :: ztilt
  real    :: rtilt,xitilt,tilt,phase
 
- write(filename,"('angm',i5.5,'.exact')") nfile
+ write(filename,"('wave_',i5.5)") nfile
  open(unit=24,file=filename,status='replace',form='formatted')
  write(6,"(a,i10,a,es12.4,a)") ' nstep ',nstep,' time = ',time,' writing '//trim(filename)
 
  if (trim(mode)=='blackhole') then
-    print*,' time = ',time,' translating to ',8.*time
+    print*,' time = ',time,' translating to ',8.*time !??? Why?
     write(24,*) 8.*time,nstep
  else
     write(24,*) time,nstep
@@ -40,7 +40,7 @@ subroutine write_output_file
  enddo
  close(unit=24)
 
- nfile = nfile + 10
+ nfile = nfile + 1
 
  return
 end subroutine write_output_file

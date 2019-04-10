@@ -24,5 +24,7 @@ module waveutils
  real    :: p_index,q_index
  real    :: spin
  real    :: theta
+ real    :: tstop
+ integer :: nout
 
 end module waveutils

@@ -1,6 +1,6 @@
 module readwrite_infile
  use waveutils, only:n,rin,rout,honr,alphaSS,mode,p_index,q_index
- use waveutils, only:use_ext_sigma_profile,spin,theta,rstep,wstep
+ use waveutils, only:use_ext_sigma_profile,spin,theta,rstep,wstep,tstop,nout
  use blackhole, only:ifreq
  use setup,     only:iwarp
 
@@ -22,6 +22,8 @@ subroutine write_setupfile(filename)
  print "(a)",' writing setup options file '//trim(filename)
  open(unit=iunit,file=filename,status='replace',form='formatted')
  write(iunit,"(a)") '# Setup file for wavecode:'
+ call write_inopt(tstop  ,'tstop' ,'time to integrate to'                   ,iunit)
+ call write_inopt(nout   ,'nout'  ,'number of output files'                 ,iunit)
  call write_inopt(n      ,'n'     ,'number of grid points'                  ,iunit)
  call write_inopt(honr   ,'honr'  ,'scale height H/R of disc (at Rin)'      ,iunit)
  call write_inopt(mode   ,'mode'  ,'blackhole, binary, or binar-alpha0'     ,iunit)
@@ -69,6 +71,8 @@ subroutine read_setupfile(filename,ierr)
  nerr = 0
  ierr = 0
  call open_db_from_file(db,filename,iunit,ierr)
+ call read_inopt(tstop   ,'tstop',db,min=0.,      errcount=nerr)
+ call read_inopt(nout    ,'nout' ,db,min=1 ,      errcount=nerr)
  call read_inopt(n       ,'n'    ,db,min=0 ,      errcount=nerr)
  call read_inopt(honr    ,'honr' ,db,min=0.,      errcount=nerr)
  call read_inopt(mode    ,'mode' ,db,             errcount=nerr)
