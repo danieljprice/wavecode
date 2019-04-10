@@ -63,10 +63,14 @@ subroutine read_setupfile(filename,ierr)
  nerr = 0
  ierr = 0
  call open_db_from_file(db,filename,iunit,ierr)
- call read_inopt(n      ,'n'      ,db,min=0 ,errcount=nerr)
- call read_inopt(honr   ,'honr'   ,db,min=0.,errcount=nerr)
- call read_inopt(theta  ,'theta'  ,db,min=0.,max=90.,errcount=nerr)
- call read_inopt(mode   ,'mode'   ,db,errcount=nerr)
+ call read_inopt(n      ,'n'      ,db,min=0 ,        errcount=nerr)
+ call read_inopt(honr   ,'honr'   ,db,min=0.,        errcount=nerr)
+ call read_inopt(mode   ,'mode'   ,db,               errcount=nerr)
+ call read_inopt(iwarp  ,'iwarp'  ,db,min=1  ,max=2 ,errcount=nerr)
+
+ if (iwarp==1) then
+    call read_inopt(theta  ,'theta'  ,db,min=0.,max=90.,errcount=nerr)
+ endif
 
  if (trim(mode)=='blackhole') then
     call read_inopt(ifreq ,'ifreq',db,min=1  ,max=3 ,errcount=nerr)
@@ -77,8 +81,8 @@ subroutine read_setupfile(filename,ierr)
     call read_inopt(rin    ,'rin'    ,db,min=0.,errcount=nerr)
     call read_inopt(rout   ,'rout'   ,db,min=0.,errcount=nerr)
     call read_inopt(alphaSS,'alphaSS',db,min=0.,errcount=nerr)
-    call read_inopt(p_index,'p_index',db,errcount=nerr)
-    call read_inopt(q_index,'q_index',db,errcount=nerr)
+    call read_inopt(p_index,'p_index',db,       errcount=nerr)
+    call read_inopt(q_index,'q_index',db,       errcount=nerr)
  endif
 
  call close_db(db)
