@@ -74,8 +74,8 @@ program wave
  alphaSS = 0.02        ! define the dissipation coefficient
 
  if (use_ext_sigma_profile) then
-    rin  = ext_radius(1) + 1.e-5
-    rout = ext_radius(nlines) - 1.e-5
+    rin  = ext_radius(1) + epsilon(rin)
+    rout = ext_radius(nlines) - epsilon(rout)
  endif
 
  call runtime_parameters()
