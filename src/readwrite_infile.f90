@@ -84,16 +84,10 @@ end subroutine read_setupfile
 
 !-- Read runtime parameters from setup file
 subroutine runtime_parameters()
- use setup, only:ext_radius,nlines
  character(*), parameter :: filename = 'setup.in'
  logical :: iexist
  integer :: ierr
  integer :: imode
-
- if (use_ext_sigma_profile) then
-    rin  = ext_radius(1)
-    rout = ext_radius(nlines)
- endif
 
  inquire(file=filename,exist=iexist)
  if (iexist) call read_setupfile(filename,ierr)

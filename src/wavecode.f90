@@ -28,7 +28,7 @@ program wave
  use blackhole,       only:set_bh,get_bh
  use output,          only:write_output_file,print_tstep
  use step,            only:update,tstep
- use setup,           only:makegrid,makedisc,do_setup,read_external_sigma
+ use setup,           only:makegrid,makedisc,do_setup,read_external_sigma,nlines,ext_radius
  use readwrite_infile,only:runtime_parameters
 
  implicit none
@@ -72,6 +72,11 @@ program wave
  p_index = 1.5
  q_index = 0.75
  alphaSS = 0.02        ! define the dissipation coefficient
+
+ if (use_ext_sigma_profile) then
+    rin  = ext_radius(1) + 1.e-5
+    rout = ext_radius(nlines) - 1.e-5
+ endif
 
  call runtime_parameters()
 
