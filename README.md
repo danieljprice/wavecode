@@ -99,3 +99,6 @@ splash wave_0* -y 4 -x 1
 ```
 giving a result something like:
 ![image](https://github.com/danieljprice/wavecode/assets/12252103/3cab26ba-ce39-49fa-a6be-924c677c89d3)
+
+## See also
+https://github.com/danieljprice/warpcode for propagating warps in the diffusive regime
